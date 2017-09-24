@@ -1,0 +1,23 @@
+{
+  "JSON_SCHEMA_VERSION": "1.1",
+  "PACKAGE_NAME": "KSPDev_LocalizationTool",
+  "SHELL_COMPILE_BINARY_SCRIPT" : "make_binary.cmd",
+  "RELEASE_MOD_FOLDER" : "KSPDev/LocalizationTool",
+  "MINIAVC_VERSION_FILE" : "/KSPDev_LocalizationTool.version",
+  "RELEASE_NAME_FREE_FORMAT" : "{PACKAGE_NAME}_v{0}.{1}",
+  "STRUCTURE" : {
+    "" : [
+      "/README.md",
+      "/LICENSE.md"
+    ],
+    "Plugins" : [
+      "{COMPILED_BINARY}",
+      "{MINIAVC_VERSION_FILE}",
+      "/Binaries/*",
+      "-*.xml"
+    ],
+    "PluginData" : [
+      "/settings.cfg"
+    ]
+  }
+}
