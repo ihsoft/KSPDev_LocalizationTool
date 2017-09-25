@@ -58,6 +58,14 @@ class Controller : MonoBehaviour, IHasGUI {
   static readonly Message AssembliesWithoutModulesToggleTxt = new Message(
       "#locTool_00009",
       "Show assemblies with no modules");
+
+  readonly static Message MakeSelectionsForPatchTxt = new Message(
+      "#locTool_00010",
+      "<i>EXPORT PART CONFIGS: Select a parts folder</i>");
+
+  readonly static Message<int> PatchPartsBtnTxt = new Message<int>(
+      "#locTool_00011",
+      "Patch and export <<1>> part configs");
   #endregion
 
   #region GUI scrollbox records
@@ -252,6 +260,18 @@ class Controller : MonoBehaviour, IHasGUI {
       GUI.enabled = true;
     }
 
+    // Parts export controls.
+    if (selectedPartsCount > 0) {
+      var title = PatchPartsBtnTxt.Format(selectedParts.Sum(x => x.parts.Count));
+      if (GUILayout.Button(title)) {
+        GuiExportPartConfigs(selectedParts);
+      }
+    } else {
+      GUI.enabled = false;
+      GUILayout.Button(MakeSelectionsForPatchTxt);
+      GUI.enabled = true;
+    }
+
     // Strings reload controls.
     if (selectedLocsCount > 0) {
       var title = RefreshBtnTxt.Format(selectedConfigs.Count(),
@@ -386,6 +406,45 @@ class Controller : MonoBehaviour, IHasGUI {
     PartLoader.LoadedPartsList
         .ForEach(LocalizationManager.LocalizePartInfo);
     LocalizationManager.LocalizePartMenus();
+  }
+
+  /// <summary>
+  /// Patches the part configs so that they refer the tags for the localizable fileds, and saves the
+  /// modified fiels in the export location.
+  /// </summary>
+  /// <remarks></remarks>
+  /// <param name="parts">The parts to patch.</param>
+  void GuiExportPartConfigs(IEnumerable<PartsRecord> parts) {
+    foreach (var part in parts.SelectMany(x => x.parts)) {
+      var config = ConfigStore.LoadConfigWithComments(
+          part.configFileFullName, localizeValues: false);
+      if (config == null) {
+        Debug.LogErrorFormat(
+            "Cannot load config file for part {0}: {1}", part.name, part.configFileFullName);
+        continue;
+      }
+      var partNode = config.GetNode("PART");
+      foreach (var fieldName in Extractor.localizablePartFields) {
+        var field = partNode.values.Cast<ConfigNode.Value>()
+            .FirstOrDefault(x => x.name == fieldName);
+        if (field == null) {
+          Debug.LogWarningFormat("Field '{0}' is not found in the part {1} config",
+                                 fieldName, part.name);
+          continue;
+        }
+        if (field.value.StartsWith("#", StringComparison.Ordinal)) {
+          continue;  // It's already localized.
+        }
+        var locTag = Extractor.MakePartFieldLocalizationTag(part.name, fieldName);
+        field.comment = locTag + " = " + field.value;
+        field.value = locTag;
+      }
+
+      var tgtPath = KspPaths.GetModsDataFilePath(
+          this, "Parts/" + part.name.Replace(".", "_") + ".cfg");
+      Debug.LogWarningFormat("Saving patched part config into: {0}", tgtPath);
+      ConfigStore.SaveConfigWithComments(config, tgtPath);
+    }
   }
 }
 
