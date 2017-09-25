@@ -256,9 +256,12 @@ static class ConfigStore {
   /// <param name="value">
   /// The value string. It can contain multiple lines separated by a "\n" symbols.
   /// </param>
+  /// <param name="comment">The optional comment to add to the right of the field value.</param>
   /// <returns>A properly formatted line.</returns>
-  static string MakeConfigNodeLine(int indentation, string key, string value) {
-    return new string('\t', indentation) + key + " = " + EscapeValue(value);
+  static string MakeConfigNodeLine(int indentation, string key, string value,
+                                          string comment = null) {
+    return new string('\t', indentation) + key + " = " + EscapeValue(value)
+        + (comment != null ? " // " + comment : "");
   }
 
   /// <summary>Escapes special symbols so that they don't break the formatting.</summary>
