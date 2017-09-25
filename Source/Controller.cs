@@ -7,6 +7,7 @@ using KSPDev.FSUtils;
 using KSPDev.ConfigUtils;
 using KSPDev.GUIUtils;
 using System;
+using System.IO;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
@@ -311,9 +312,14 @@ class Controller : MonoBehaviour, IHasGUI {
     Debug.LogWarningFormat("Export {0} parts strings and {1} modules strings",
                            partsLocs.Count, modulesLocs.Count);
     var locItems = partsLocs.Union(modulesLocs);
-    var filename = KspPaths.GetModsDataFilePath(this, "export.cfg", createMissingDirs: true);
-    ConfigStore.WriteLocItems(locItems, Localizer.CurrentLanguage, filename);
-    Debug.LogWarningFormat("Strings are written into: {0}", filename);
+    var fileName = "strings.cfg";
+    if (assemblies.Count() == 1) {
+      fileName = assemblies.First().assembly.GetName().Name + "_" + fileName;
+    }
+    var filePath = KspPaths.GetModsDataFilePath(this, "Lang/" + fileName);
+    Directory.CreateDirectory(Path.GetDirectoryName(filePath));
+    ConfigStore.WriteLocItems(locItems, Localizer.CurrentLanguage, filePath);
+    Debug.LogWarningFormat("Strings are written into: {0}", filePath);
   }
   
   /// <summary>Saves the strings for the selected entities into a new file.</summary>
