@@ -66,7 +66,7 @@ class Controller : MonoBehaviour, IHasGUI {
 
   readonly static Message<int> PatchPartsBtnTxt = new Message<int>(
       "#locTool_00011",
-      "Patch and export <<1>> part configs");
+      "Export <<1>> patched part configs");
   #endregion
 
   #region GUI scrollbox records
