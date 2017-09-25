@@ -233,7 +233,13 @@ static class ConfigStore {
     res.AppendLine(indentSpaces + node.name);
     res.AppendLine(indentSpaces + "{");
     indentation++;
-    foreach (var field in node.values.Cast<ConfigNode.Value>()) {
+
+    // Skip the trailing empty lines, so that the modules section is not
+    var fields = node.values.Cast<ConfigNode.Value>()
+        .Reverse()
+        .SkipWhile(f => f.name == "__commentField" && f.value == "")
+        .Reverse();
+    foreach (var field in fields) {
       if (field.name == "__commentField") {
         if (field.value.Length == 0) {
           res.AppendLine("");
@@ -245,8 +251,11 @@ static class ConfigStore {
       res.AppendLine(
           MakeConfigNodeLine(indentation, field.name, field.value, comment: field.comment));
     }
-    foreach (var childNode in node.GetNodes()) {
-      SerializeNode(res, childNode, indentation);
+    if (node.CountNodes > 0) {
+      res.AppendLine("");
+      foreach (var childNode in node.GetNodes()) {
+        SerializeNode(res, childNode, indentation);
+      }
     }
     res.AppendLine(indentSpaces + "}");
   }
