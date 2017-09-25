@@ -7,6 +7,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Text;
 using System.Text.RegularExpressions;
 using UnityEngine;
 
@@ -202,6 +203,52 @@ static class ConfigStore {
     }
     
     return nodesStack[0];
+  }
+
+  /// <summary>Saves the node into a config file preserving the comments.</summary>
+  /// <remarks>It's a counter part to the <see cref="LoadConfigWithComments"/> method.</remarks>
+  /// <param name="node">The node with the comments to save.</param>
+  /// <param name="path">
+  /// The path to save at. The missing directiones in the path will be created if missed.
+  /// </param>
+  public static void SaveConfigWithComments(ConfigNode node, string path) {
+    var content = new StringBuilder();
+    foreach (var childNode in node.GetNodes()) {
+      SerializeNode(content, childNode , 0);
+    }
+    Directory.CreateDirectory(Path.GetDirectoryName(path));
+    File.WriteAllText(path, content.ToString());
+  }
+
+  /// <summary>Recursively collects and serializes the fields in the nodes.</summary>
+  /// <remarks>
+  /// Supports special field name <c>__commentField</c> to output the line comments. If the line
+  /// comment is empty, then only an empty line is output into the result.
+  /// </remarks>
+  /// <param name="res"></param>
+  /// <param name="node"></param>
+  /// <param name="indentation"></param>
+  static void SerializeNode(StringBuilder res, ConfigNode node, int indentation) {
+    var indentSpaces = new string('\t', indentation);
+    res.AppendLine(indentSpaces + node.name);
+    res.AppendLine(indentSpaces + "{");
+    indentation++;
+    foreach (var field in node.values.Cast<ConfigNode.Value>()) {
+      if (field.name == "__commentField") {
+        if (field.value.Length == 0) {
+          res.AppendLine("");
+        } else {
+          res.AppendLine(new string('\t', indentation) + "// " + field.value);
+        }
+        continue;
+      }
+      res.AppendLine(
+          MakeConfigNodeLine(indentation, field.name, field.value, comment: field.comment));
+    }
+    foreach (var childNode in node.GetNodes()) {
+      SerializeNode(res, childNode, indentation);
+    }
+    res.AppendLine(indentSpaces + "}");
   }
 
   /// <summary>Formats a comment with the proper indentation.</summary>
