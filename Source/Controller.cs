@@ -354,9 +354,10 @@ class Controller : MonoBehaviour, IHasGUI {
     // Find part configs for the prefix.
     targets.AddRange(PartLoader.LoadedPartsList
         .Where(x => x.partUrl.StartsWith(prefix, StringComparison.OrdinalIgnoreCase))
+        .OrderBy(x => x.partUrl)
         .GroupBy(x => {
-          var pos = x.partUrl.LastIndexOf("/Parts", StringComparison.OrdinalIgnoreCase);
-          return pos != -1 ? x.partUrl.Substring(0, pos + 6) : x.partUrl;
+            var pos = x.partUrl.LastIndexOf("/Parts", StringComparison.OrdinalIgnoreCase);
+            return pos != -1 ? x.partUrl.Substring(0, pos + 6) : x.partUrl.Split('/')[0];
         })
         .Select(group => new PartsRecord() {
             urlPrefix = group.Key,
