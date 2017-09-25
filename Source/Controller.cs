@@ -285,6 +285,7 @@ class Controller : MonoBehaviour, IHasGUI {
       GUI.enabled = true;
     }
 
+    // Parts DB update controls.
     if (GUILayout.Button(UpdateAllPartsTxt)) {
       GuiActionUpdateAllParts();
     }
