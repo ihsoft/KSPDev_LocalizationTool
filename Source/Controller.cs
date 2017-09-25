@@ -236,6 +236,8 @@ class Controller : MonoBehaviour, IHasGUI {
     var selectedAssemblies = targets.OfType<AssemblyRecord>().Where(x => x.selected);
     var selectedParts = targets.OfType<PartsRecord>().Where(x => x.selected);
     var selectedConfigs = targets.OfType<ConfigRecord>().Where(x => x.selected);
+
+    // Strings export controls.
     if (selectedPartsCount > 0
         || allowNoModulesAssemblies && selectedAssemblies.Any()
         || !allowNoModulesAssemblies && selectedModulesCount > 0) {
@@ -249,6 +251,8 @@ class Controller : MonoBehaviour, IHasGUI {
       GUILayout.Button(MakeSelectionsForExportTxt);
       GUI.enabled = true;
     }
+
+    // Strings reload controls.
     if (selectedLocsCount > 0) {
       var title = RefreshBtnTxt.Format(selectedConfigs.Count(),
                                        selectedParts.Sum(x => x.parts.Count));
@@ -262,8 +266,9 @@ class Controller : MonoBehaviour, IHasGUI {
     }
 
     if (GUILayout.Button(UpdateAllPartsTxt)) {
-      UpdateAllParts();
+      GuiActionUpdateAllParts();
     }
+
     GUI.DragWindow();
   }
 
@@ -374,7 +379,7 @@ class Controller : MonoBehaviour, IHasGUI {
   }
 
   /// <summary>Triggers the part prefabs update.</summary>
-  void UpdateAllParts() {
+  void GuiActionUpdateAllParts() {
     // Force all strings to recalculate in case of they were cached.
     GameEvents.onLanguageSwitched.Fire();
     Debug.LogWarningFormat("Update all the part prefabs due to the settings change");
