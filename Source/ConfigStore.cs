@@ -89,8 +89,12 @@ static class ConfigStore {
   /// </para>
   /// </remarks>
   /// <param name="fileFullName">The file to load.</param>
+  /// <param name="localizeValues">
+  /// Tells if the field values should be localized. If not, then they are retruned from the file
+  /// "as-is".
+  /// </param>
   /// <returns>A loaded config node.</returns>
-  public static ConfigNode LoadConfigWithComments(string fileFullName) {
+  public static ConfigNode LoadConfigWithComments(string fileFullName, bool localizeValues = true) {
     if (!File.Exists(fileFullName)) {
       return ConfigNode.Load(fileFullName);  // Just for the sake of the logs.
     }
@@ -154,7 +158,7 @@ static class ConfigStore {
       if (keyValueMatch.Success) {
         // Localize the value if it starts from "#". There can be false positives.
         var value = keyValueMatch.Groups[2].Value;
-        if (value.StartsWith("#", StringComparison.Ordinal)) {
+        if (localizeValues && value.StartsWith("#", StringComparison.Ordinal)) {
           value = Localizer.Format(value);
         }
         node.AddValue(keyValueMatch.Groups[1].Value, value, comment);
