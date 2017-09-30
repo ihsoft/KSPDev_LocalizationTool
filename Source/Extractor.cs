@@ -339,19 +339,21 @@ static class Extractor {
       if (!match.Success) {
         continue;  // Not localized.
       }
-      string locTag = match.Groups[1].Value;
-      string locDefaultValue = match.Groups[2].Value;
-      if (field.value != locTag) {
+      var locTag = match.Groups[1].Value;
+      var locValue = field.value;
+      if (field.value == locTag) {
+        // In case of the tag is not get resolved, use the default template. 
         Debug.LogWarningFormat(
-            "A possible localized field has wrong syntax:"
-            + " part={0}, field={1}, value={2}, comment={3}",
-            part.name, field.name, field.value, field.comment);
+            "Field '{0}' in part {1} looks localized, but the tag '{2}' is not found"
+            + " (suggested default value: '{3}')",
+            field.name, part.name, locTag, match.Groups[2].Value);
+        locValue = match.Groups[2].Value;
       }
       var item = new LocItem() {
           groupKey = "Part: " + part.name,
           fullFilePath = part.configFileFullName,
-          locTag = MakePartFieldLocalizationTag(part.name, field.name),
-          locDefaultValue = locDefaultValue,
+          locTag = locTag,
+          locDefaultValue = locValue,
       };
       res.Add(item);
     }
