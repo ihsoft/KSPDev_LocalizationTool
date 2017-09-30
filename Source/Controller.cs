@@ -67,6 +67,26 @@ class Controller : MonoBehaviour, IHasGUI {
   readonly static Message<int> PatchPartsBtnTxt = new Message<int>(
       "#locTool_00011",
       "Export <<1>> patched part configs");
+
+  static readonly Message CloseDialogBtnTxt = new Message(
+      "#locTool_00012",
+      "Close");
+
+  static readonly Message StringsExportedDlgTitle = new Message(
+      "#locTool_00013",
+      "Strings exported");
+
+  static readonly Message<string> FileSavedTxt = new Message<string>(
+      "#locTool_00014",
+      "File saved:\n<<1>>");
+
+  static readonly Message ConfigSavedDlgTitle = new Message(
+      "#locTool_00015",
+      "Part configs saved");
+
+  static readonly Message<int, string> ConfigsSavedInFolderTxt = new Message<int, string>(
+      "#locTool_00016",
+      "<<1>> part configs saved into folder:\n<<2>>");
   #endregion
 
   #region GUI scrollbox records
@@ -170,6 +190,7 @@ class Controller : MonoBehaviour, IHasGUI {
   Vector2 partsScrollPos;
   string lastCachedLookupPrefix;
   Event toggleConsoleKeyEvent;
+  PopupDialog currentDialog;
 
   #region MonoBehaviour overrides 
   /// <summary>Only loads session settings.</summary>
@@ -320,6 +341,7 @@ class Controller : MonoBehaviour, IHasGUI {
     Directory.CreateDirectory(Path.GetDirectoryName(filePath));
     ConfigStore.WriteLocItems(locItems, Localizer.CurrentLanguage, filePath);
     Debug.LogWarningFormat("Strings are written into: {0}", filePath);
+    ShowCompletionDialog(StringsExportedDlgTitle, FileSavedTxt.Format(filePath));
   }
   
   /// <summary>Saves the strings for the selected entities into a new file.</summary>
@@ -423,7 +445,9 @@ class Controller : MonoBehaviour, IHasGUI {
   /// <remarks></remarks>
   /// <param name="parts">The parts to patch.</param>
   void GuiExportPartConfigs(IEnumerable<PartsRecord> parts) {
-    foreach (var part in parts.SelectMany(x => x.parts)) {
+    var exportParts = parts.SelectMany(x => x.parts);
+    var exportPath = KspPaths.GetModsDataFilePath(this, "Parts/");
+    foreach (var part in exportParts) {
       var config = ConfigStore.LoadConfigWithComments(
           part.configFileFullName, localizeValues: false);
       if (config == null) {
@@ -448,11 +472,33 @@ class Controller : MonoBehaviour, IHasGUI {
         field.value = locTag;
       }
 
-      var tgtPath = KspPaths.GetModsDataFilePath(
-          this, "Parts/" + part.name.Replace(".", "_") + ".cfg");
+      var tgtPath = exportPath + part.name.Replace(".", "_") + ".cfg";
       Debug.LogWarningFormat("Saving patched part config into: {0}", tgtPath);
       ConfigStore.SaveConfigWithComments(config, tgtPath);
     }
+    ShowCompletionDialog(
+        ConfigSavedDlgTitle,
+        ConfigsSavedInFolderTxt.Format(exportParts.Count(), exportPath));
+  }
+
+  /// <summary>Creates a simple modal dialog.</summary>
+  /// <param name="title">The title of the dialog.</param>
+  /// <param name="msg">The string to present in the dialog.</param>
+  void ShowCompletionDialog(string title, string msg) {
+    if (currentDialog != null) {
+      currentDialog.Dismiss();
+    }
+    currentDialog = PopupDialog.SpawnPopupDialog(
+        new MultiOptionDialog(
+            "StringsExportedDlg",
+            msg,
+            title,
+            null,
+            new DialogGUIButton(CloseDialogBtnTxt, () => {
+              currentDialog.Dismiss();
+              currentDialog = null;
+            })),
+        false, null);
   }
 }
 
