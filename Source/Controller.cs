@@ -343,7 +343,7 @@ class Controller : MonoBehaviour, IHasGUI {
     Debug.LogWarningFormat("Strings are written into: {0}", filePath);
     ShowCompletionDialog(StringsExportedDlgTitle, FileSavedTxt.Format(filePath));
   }
-  
+
   /// <summary>Saves the strings for the selected entities into a new file.</summary>
   /// <param name="configs">The configs to update the localization strings for.</param>
   /// <param name="parts">The parts to update the string in.</param>
