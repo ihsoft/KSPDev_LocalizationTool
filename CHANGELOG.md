@@ -1,4 +1,5 @@
-# 1.1 (pre-release):
+# 1.1 (March 7th, 2018):
+* KSP 1.4.0 compatibility.
 * Migrate to Utils 0.31.
 * Add the string export completion dialog to show the final path.
 * Improve handling of the non-standard localized part fields.

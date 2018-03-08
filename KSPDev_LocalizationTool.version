@@ -7,25 +7,25 @@
     }, 
     "KSP_VERSION": {
         "MAJOR": 1, 
-        "MINOR": 3, 
+        "MINOR": 4, 
         "PATCH": 0
     }, 
     "KSP_VERSION_MAX": {
         "MAJOR": 1, 
-        "MINOR": 3, 
+        "MINOR": 4, 
         "PATCH": 99
     }, 
     "KSP_VERSION_MIN": {
         "MAJOR": 1, 
-        "MINOR": 3, 
+        "MINOR": 4, 
         "PATCH": 0
     }, 
     "NAME": "KSPDev LocalizationTool", 
     "URL": "https://raw.githubusercontent.com/ihsoft/KSPDev_LocalizationTool/master/KSPDev_LocalizationTool.version", 
     "VERSION": {
-        "BUILD": 6476, 
+        "BUILD": 6640, 
         "MAJOR": 1, 
-        "MINOR": 0, 
-        "PATCH": 42694
+        "MINOR": 1, 
+        "PATCH": 40305
     }
 }
