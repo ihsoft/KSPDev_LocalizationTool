@@ -42,6 +42,7 @@ static class Extractor {
                                fieldName, part.name);
         continue;
       }
+      config.values.Remove(field);  // Don't handle it down the stream.
       string locTag = null;
       string locDefaultValue = null;
       if (!string.IsNullOrEmpty(field.comment)
@@ -332,7 +333,7 @@ static class Extractor {
 
     // Go thru all the fields to detect if there are localized optional fields.
     foreach (var field in config.values.Cast<ConfigNode.Value>()) {
-      if (localizablePartFields.Contains(field.name) || string.IsNullOrEmpty(field.comment)) {
+      if (string.IsNullOrEmpty(field.comment)) {
         continue;
       }
       var match = Regex.Match(field.comment, @"^\s*(#[a-zA-Z0-9_-]+)\s*=\s*(.+?)$");
