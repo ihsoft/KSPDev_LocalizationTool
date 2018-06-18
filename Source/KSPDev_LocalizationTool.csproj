@@ -33,6 +33,7 @@
     <Optimize>False</Optimize>
     <CheckForOverflowUnderflow>True</CheckForOverflowUnderflow>
     <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <BaseIntermediateOutputPath>obj\</BaseIntermediateOutputPath>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)' == 'Release' ">
     <OutputPath>bin\Release\</OutputPath>
@@ -83,8 +84,8 @@
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
-    <PostBuildEvent>IF EXIST "Q:\GameData\KSPDev\LocalizationTool" xcopy "$(TargetPath)" "Q:\GameData\KSPDev\LocalizationTool\" /Y
-IF EXIST "Q:\GameData\KSPDev\LocalizationTool" xcopy "$(TargetDir)KSPDev_Utils*.dll" "Q:\GameData\KSPDev\LocalizationTool\" /Y
+    <PostBuildEvent>IF EXIST "Q:\GameData\KSPDev\LocalizationTool" xcopy "$(TargetPath)" "Q:\GameData\KSPDev\LocalizationTool\Plugins\" /Y
+IF EXIST "Q:\GameData\KSPDev\LocalizationTool" xcopy "$(TargetDir)KSPDev_Utils*.dll" "Q:\GameData\KSPDev\LocalizationTool\Plugins\" /Y
 </PostBuildEvent>
   </PropertyGroup>
 </Project>
