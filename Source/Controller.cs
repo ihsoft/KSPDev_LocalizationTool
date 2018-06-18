@@ -181,7 +181,6 @@ class Controller : MonoBehaviour, IHasGUI {
   static readonly GuiActionsList guiActions = new GuiActionsList();
 
   #region Window intermediate properties
-  const int WindowId = 19410622;
   static Vector2 windowSize = new Vector2(430, 0);
   static Rect windowRect;
   #endregion
@@ -217,7 +216,7 @@ class Controller : MonoBehaviour, IHasGUI {
     }
     if (isUIVisible) {
       windowRect = GUILayout.Window(
-          WindowId, windowRect, MakeConsoleWindow,
+          0, windowRect, MakeConsoleWindow,
           MainWindowTitleTxt.Format(GetType().Assembly.GetName().Version));
     }
   }
