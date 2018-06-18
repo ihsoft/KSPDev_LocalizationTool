@@ -185,7 +185,7 @@ class Controller : MonoBehaviour, IHasGUI {
   static Rect windowRect;
   #endregion
 
-  readonly List<ScannedRecord> targets = new List<ScannedRecord>();
+  List<ScannedRecord> targets;
   Vector2 partsScrollPos;
   string lastCachedLookupPrefix;
   Event toggleConsoleKeyEvent;
@@ -213,8 +213,12 @@ class Controller : MonoBehaviour, IHasGUI {
     if (Event.current.Equals(toggleConsoleKeyEvent)) {
       Event.current.Use();
       isUIVisible = !isUIVisible;
+      targets = null;
     }
     if (isUIVisible) {
+      if (targets == null) {
+        GuiActionUpdateTargets(lookupPrefix);
+      }
       windowRect = GUILayout.Window(
           0, windowRect, MakeConsoleWindow,
           MainWindowTitleTxt.Format(GetType().Assembly.GetName().Version));
@@ -370,7 +374,11 @@ class Controller : MonoBehaviour, IHasGUI {
   /// <summary>Finds all the entities for the prefix, and populates the list.</summary>
   /// <param name="prefix">The prefix to find URL by.</param>
   void GuiActionUpdateTargets(string prefix) {
-    targets.Clear();
+    if (targets == null) {
+      targets = new List<ScannedRecord>();
+    } else {
+      targets.Clear();
+    }
     if (prefix.Length < 3) {
       targets.Add(new StubRecord() {
           stubText = TypePrefixToStartTxt,
