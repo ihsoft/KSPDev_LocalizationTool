@@ -3,6 +3,7 @@
 // This software is distributed under Public domain license.
 
 using KSP.Localization;
+using KSPDev.LogUtils;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -45,7 +46,7 @@ static class ConfigStore {
           .Where(x => x.count > 1);
       foreach (var duplicate in duplicates) {
         file.WriteLine("// DUPLICATED TAG: " + duplicate.tag);
-        Debug.LogWarningFormat("Found duplicated tag: {0}", duplicate.tag);
+        DebugEx.Warning("Found duplicated tag: {0}", duplicate.tag);
       }
 
       file.Write("Localization\n{\n\t" + lang + "\n\t{\n");
@@ -126,8 +127,8 @@ static class ConfigStore {
       if (line.StartsWith("}", StringComparison.Ordinal)) {
         nodesStack.RemoveAt(nodesStack.Count - 1);
         if (nodesStack.Count == 0) {
-          Debug.LogErrorFormat("Unexpected node close statement found at line {0} in {1}",
-                               lineNum, fileFullName);
+          DebugEx.Error(
+              "Unexpected node close statement found at line {0} in {1}", lineNum, fileFullName);
           return null;
         }
         node = nodesStack[nodesStack.Count - 1];
@@ -194,7 +195,7 @@ static class ConfigStore {
         }
       }
       if (nodeName == null) {
-        Debug.LogErrorFormat("Cannot parse node at line {0} in {1}", lineNum, fileFullName);
+        DebugEx.Error("Cannot parse node at line {0} in {1}", lineNum, fileFullName);
         return null;
       }
       var newNode = node.AddNode(nodeName, comment);

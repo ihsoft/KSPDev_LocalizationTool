@@ -10,7 +10,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text.RegularExpressions;
-using UnityEngine;
 
 namespace KSPDev.LocalizationTool {
 
@@ -26,7 +25,7 @@ static class LocalizationManager {
         ConfigNode.Load(configFilename), "Localization/" + Localizer.CurrentLanguage);
     var oldTags = new HashSet<string>(targetNode.values.DistinctNames());
     var newTags = new HashSet<string>(newNode.values.DistinctNames());
-    Debug.LogWarningFormat(
+    DebugEx.Warning(
         "Update localization config: added={0}, deleted={1}, updated={2}, file={3}",
         newTags.Except(oldTags).Count(),
         oldTags.Except(newTags).Count(),
@@ -48,14 +47,14 @@ static class LocalizationManager {
   /// <remarks>
   /// The methods reads the current content from the part's config on disk and applies values to the
   /// localizable part fields. An up to date localization content must be loaded in the game for
-  /// this method to actuall update the parts.
+  /// this method to actually update the parts.
   /// </remarks>
   /// <param name="partInfo"></param>
   /// <seealso cref="UpdateLocalizationContent"/>
   /// <seealso cref="Extractor.localizablePartFields"/>
   public static void LocalizePartInfo(AvailablePart partInfo) {
     if (partInfo.partUrlConfig == null) {
-      Debug.LogErrorFormat("Skip part {0} since it doesn't have a config", partInfo.name);
+      DebugEx.Error("Skip part {0} since it doesn't have a config", partInfo.name);
       return;
     }
 
@@ -63,11 +62,11 @@ static class LocalizationManager {
     // Don't request "PART" since it can be a ModuleManager syntax.
     partConfig = partConfig != null && partConfig.nodes.Count > 0 ? partConfig.nodes[0]: null;
     if (partConfig == null) {
-      Debug.LogErrorFormat("Cannot find config for: {0}", partInfo.partUrlConfig.parent.fullPath);
+      DebugEx.Error("Cannot find config for: {0}", partInfo.partUrlConfig.parent.fullPath);
       return;
     }
 
-    Debug.LogFormat("Update strings in part {0}", partInfo.name);
+    DebugEx.Info("Update strings in part {0}", partInfo.name);
     Extractor.localizablePartFields.ToList().ForEach(name => {
       var newValue = partConfig.GetValue(name);
       if (newValue != null) {
@@ -83,12 +82,12 @@ static class LocalizationManager {
     if (partModules.Count > partInfo.moduleInfos.Count) {
       // When modules are added to prefab after the database load, the count can mismatch.
       // Those extra modules will be skipped during the refresh since they are not visible anywyas.
-      Debug.LogWarningFormat(
+      DebugEx.Warning(
           "Part {0} has {1} UI visible modules, but there only {2} module infos",
           partInfo.name, partModules.Count, partInfo.moduleInfos.Count);
     } else if (partInfo.moduleInfos.Count > partModules.Count) {
       // Can happen when a module is deleted in runtime. Such modules will get lost in refresh.
-      Debug.LogWarningFormat(
+      DebugEx.Warning(
           "Part {0} has {1} module infos, but there are only {2} UI visible modules",
           partInfo.name, partInfo.moduleInfos.Count, partModules.Count);
     }
@@ -118,7 +117,7 @@ static class LocalizationManager {
         .OfType<UIPartActionWindow>()
         .ToList()
         .ForEach(m => {
-          Debug.LogFormat("Localize menu for part {0}", DbgFormatter.PartId(m.part));
+          DebugEx.Info("Localize menu for part {0}", m.part);
           m.titleText.text = m.part.partInfo.title;
         });
   }

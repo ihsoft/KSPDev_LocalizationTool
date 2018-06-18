@@ -6,6 +6,7 @@ using KSP.Localization;
 using KSPDev.FSUtils;
 using KSPDev.ConfigUtils;
 using KSPDev.GUIUtils;
+using KSPDev.LogUtils;
 using System;
 using System.IO;
 using System.Collections.Generic;
@@ -333,8 +334,8 @@ class Controller : MonoBehaviour, IHasGUI {
         .Select(Extractor.EmitItemsForType)
         .SelectMany(x => x)
         .ToList();
-    Debug.LogWarningFormat("Export {0} parts strings and {1} modules strings",
-                           partsLocs.Count, modulesLocs.Count);
+    DebugEx.Warning(
+        "Export {0} parts strings and {1} modules strings", partsLocs.Count, modulesLocs.Count);
     var locItems = partsLocs.Union(modulesLocs);
     var fileName = "strings.cfg";
     if (assemblies.Count() == 1) {
@@ -343,7 +344,7 @@ class Controller : MonoBehaviour, IHasGUI {
     var filePath = KspPaths.GetModsDataFilePath(this, "Lang/" + fileName);
     Directory.CreateDirectory(Path.GetDirectoryName(filePath));
     ConfigStore.WriteLocItems(locItems, Localizer.CurrentLanguage, filePath);
-    Debug.LogWarningFormat("Strings are written into: {0}", filePath);
+    DebugEx.Warning("Strings are written into: {0}", filePath);
     ShowCompletionDialog(StringsExportedDlgTitle, FileSavedTxt.Format(filePath));
   }
 
@@ -439,7 +440,7 @@ class Controller : MonoBehaviour, IHasGUI {
   void GuiActionUpdateAllParts() {
     // Force all strings to recalculate in case of they were cached.
     GameEvents.onLanguageSwitched.Fire();
-    Debug.LogWarningFormat("Update all the part prefabs due to the settings change");
+    DebugEx.Warning("Update all the part prefabs due to the settings change");
     PartLoader.LoadedPartsList
         .ForEach(LocalizationManager.LocalizePartInfo);
     LocalizationManager.LocalizePartMenus();
@@ -458,8 +459,7 @@ class Controller : MonoBehaviour, IHasGUI {
       var config = ConfigStore.LoadConfigWithComments(
           part.configFileFullName, localizeValues: false);
       if (config == null) {
-        Debug.LogErrorFormat(
-            "Cannot load config file for part {0}: {1}", part.name, part.configFileFullName);
+        DebugEx.Error("Cannot load config file for part {0}: {1}", part, part.configFileFullName);
         continue;
       }
       var partNode = config.GetNode("PART");
@@ -467,8 +467,7 @@ class Controller : MonoBehaviour, IHasGUI {
         var field = partNode.values.Cast<ConfigNode.Value>()
             .FirstOrDefault(x => x.name == fieldName);
         if (field == null) {
-          Debug.LogWarningFormat("Field '{0}' is not found in the part {1} config",
-                                 fieldName, part.name);
+          DebugEx.Warning("Field '{0}' is not found in the part {1} config", fieldName, part);
           continue;
         }
         if (field.value.StartsWith("#", StringComparison.Ordinal)) {
@@ -480,7 +479,7 @@ class Controller : MonoBehaviour, IHasGUI {
       }
 
       var tgtPath = exportPath + part.name.Replace(".", "_") + ".cfg";
-      Debug.LogWarningFormat("Saving patched part config into: {0}", tgtPath);
+      DebugEx.Warning("Saving patched part config into: {0}", tgtPath);
       ConfigStore.SaveConfigWithComments(config, tgtPath);
     }
     ShowCompletionDialog(

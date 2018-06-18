@@ -3,6 +3,7 @@
 // This software is distributed under Public domain license.
 
 using KSPDev.GUIUtils;
+using KSPDev.LogUtils;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -28,8 +29,8 @@ static class Extractor {
     var config = (ConfigStore.LoadConfigWithComments(part.configFileFullName)
                   ?? ConfigNode.Load(part.configFileFullName)).GetNode("PART");
     if (config == null) {
-      Debug.LogErrorFormat("Failed to load part's config: partName={0}, configUrl={1}",
-                           part.name, part.configFileFullName);
+      DebugEx.Error("Failed to load part's config: partName={0}, configUrl={1}",
+                    part.name, part.configFileFullName);
       return res;
     }
 
@@ -38,8 +39,8 @@ static class Extractor {
       var field = config.values.Cast<ConfigNode.Value>()
           .FirstOrDefault(x => x.name == fieldName);
       if (field == null) {
-        Debug.LogWarningFormat("Field '{0}' is not found in the part {1} config",
-                               fieldName, part.name);
+        DebugEx.Warning("Field '{0}' is not found in the part {1} config",
+                        fieldName, part.name);
         continue;
       }
       config.values.Remove(field);  // Don't handle it down the stream.
@@ -55,7 +56,7 @@ static class Extractor {
             locDefaultValue = match.Groups[2].Value; 
           }
         } else {
-          Debug.LogWarningFormat(
+          DebugEx.Warning(
               "Cannot resolve defult localization tag in field {0} for part {1}: {2}",
               fieldName, config.GetValue("name"), field.comment);
         }
@@ -245,30 +246,29 @@ static class Extractor {
       return res;
     }
     if ((field.Attributes & FieldAttributes.Static) == 0) {
-      Debug.LogWarningFormat("Skipping a non-static message field: {0}.{1}",
-                             field.DeclaringType.FullName, field.Name);
+      DebugEx.Warning("Skipping a non-static message field: {0}.{1}",
+                      field.DeclaringType.FullName, field.Name);
       return res;
     }
     var value = field.GetValue(null);
     if (value == null) {
-      Debug.LogErrorFormat("The message field is NULL: {0}.{1}",
-                           field.DeclaringType.FullName, field.Name);
+      DebugEx.Error("The message field is NULL: {0}.{1}", field.DeclaringType.FullName, field.Name);
       return res;
     }
     var msgTag = ReflectionHelper.GetReflectedString(value, "tag") ?? "";
     var defaultTemplate = ReflectionHelper.GetReflectedString(value, "defaultTemplate");
     if (defaultTemplate == null) {
       // The template is never null.
-      Debug.LogWarningFormat("Failed to read a message from {0} in {1}.{2}",
-                           field.FieldType.FullName,
-                           field.DeclaringType.FullName, field.Name);
+      DebugEx.Warning("Failed to read a message from {0} in {1}.{2}",
+                      field.FieldType.FullName,
+                      field.DeclaringType.FullName, field.Name);
       return res;
     }
     var description = ReflectionHelper.GetReflectedString(value, "description");
     var locExample = ReflectionHelper.GetReflectedString(value, "example");
     if (!msgTag.StartsWith("#", StringComparison.Ordinal)) {
       msgTag = MakeTypeMemberLocalizationTag(info);
-      Debug.LogWarningFormat("Auto generate a tag {0}", msgTag);
+      DebugEx.Warning("Auto generate a tag {0}", msgTag);
     }
     res.Add(new LocItem() {
         groupKey = "Type: " + info.DeclaringType.FullName,
@@ -344,7 +344,7 @@ static class Extractor {
       var locValue = field.value;
       if (field.value == locTag) {
         // In case of the tag is not get resolved, use the default template. 
-        Debug.LogWarningFormat(
+        DebugEx.Warning(
             "Field '{0}' in part {1} looks localized, but the tag '{2}' is not found"
             + " (suggested default value: '{3}')",
             field.name, part.name, locTag, match.Groups[2].Value);
