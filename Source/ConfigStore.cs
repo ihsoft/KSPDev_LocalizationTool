@@ -172,7 +172,13 @@ static class ConfigStore {
         // Localize the value if it starts from "#". There can be false positives.
         var value = keyValueMatch.Groups[2].Value;
         if (localizeValues && value.StartsWith("#", StringComparison.Ordinal)) {
-          value = Localizer.Format(value);
+          var locValue = Localizer.Format(value);
+          if (comment == null || !comment.StartsWith("#", StringComparison.Ordinal)) {
+            // Simulate the localized comment if one is missing. It will be used when updating
+            // parts.
+            comment = value + " = " + locValue;
+          }
+          value = locValue;
         }
         node.AddValue(keyValueMatch.Groups[1].Value, value, comment);
         lines.RemoveAt(0);
