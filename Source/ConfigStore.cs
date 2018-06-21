@@ -84,10 +84,10 @@ static class ConfigStore {
   /// can be handled.
   /// </para>
   /// <para>
-  /// The method keeps all the comments in the file including the empty lines which are treated as
+  /// The method may keep all the comments in the file including the empty lines which are treated as
   /// empty comments. When a comment is placed on the same line as a node or a value declaration,
-  /// then it's added to the node or value. If the comment is placed on its own line, then it's
-  /// added as a value of a special field named <c>__commentField</c>.   
+  /// then it's added to the node or value as "comment" column. If the comment is placed on its own
+  /// line, then it's added as a value of a special field named <c>__commentField</c>.   
   /// </para>
   /// </remarks>
   /// <param name="fileFullName">The file to load.</param>
@@ -95,8 +95,15 @@ static class ConfigStore {
   /// Tells if the field values should be localized. If not, then they are retruned from the file
   /// "as-is".
   /// </param>
+  /// <param name="skipLineComments">
+  /// Tells to not emit the "__commentField" fields for the comments that take full line and the
+  /// empty lines. It doesn't affect the in-line comments.
+  /// </param>
   /// <returns>A loaded config node.</returns>
-  public static ConfigNode LoadConfigWithComments(string fileFullName, bool localizeValues = true) {
+  public static ConfigNode LoadConfigWithComments(
+      string fileFullName,
+      bool localizeValues = true,
+      bool skipLineComments = false) {
     if (!File.Exists(fileFullName)) {
       return ConfigNode.Load(fileFullName);  // Just for the sake of the logs.
     }
@@ -119,7 +126,9 @@ static class ConfigStore {
       if (line.Length == 0) {
         lines.RemoveAt(0);
         lineNum++;
-        node.AddValue("__commentField", "");
+        if (!skipLineComments) {
+          node.AddValue("__commentField", "");
+        }
         continue;
       }
       
@@ -150,7 +159,9 @@ static class ConfigStore {
         if (line.Length == 0) {
           lines.RemoveAt(0);
           lineNum++;
-          node.AddValue("__commentField", comment);
+          if (!skipLineComments) {
+            node.AddValue("__commentField", comment);
+          }
           continue;
         }
       }
