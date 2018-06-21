@@ -357,8 +357,7 @@ class Controller : MonoBehaviour, IHasGUI {
     configs.ToList().ForEach(
         x => LocalizationManager.UpdateLocalizationContent(x.filePath, x.node));
 
-    // Notify listeners about the localization content changes.
-    GameEvents.onLanguageSwitched.Fire();
+    // FIXME: reload configs in the scene's parts.
 
     // Update the part infos for the new language/content.
     var selectedParts = new HashSet<string>(
@@ -370,6 +369,9 @@ class Controller : MonoBehaviour, IHasGUI {
 
     // Update open part menus.
     LocalizationManager.LocalizePartMenus();
+
+    // Notify listeners about the localization content changes.
+    GameEvents.onLanguageSwitched.Fire();
   }
 
   /// <summary>Finds all the entities for the prefix, and populates the list.</summary>
@@ -438,12 +440,14 @@ class Controller : MonoBehaviour, IHasGUI {
 
   /// <summary>Triggers the part prefabs update.</summary>
   void GuiActionUpdateAllParts() {
-    // Force all strings to recalculate in case of they were cached.
-    GameEvents.onLanguageSwitched.Fire();
     DebugEx.Warning("Update all the part prefabs due to the settings change");
     PartLoader.LoadedPartsList
         .ForEach(LocalizationManager.LocalizePartInfo);
+    // FIXME: reload configs in the scene's parts.
     LocalizationManager.LocalizePartMenus();
+
+    // Force all strings to recalculate in case of they were cached.
+    GameEvents.onLanguageSwitched.Fire();
   }
 
   /// <summary>
