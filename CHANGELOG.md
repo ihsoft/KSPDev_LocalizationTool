@@ -1,3 +1,9 @@
+# 1.2 (June 25th, 2018):
+* Support tags extraction from non-standard part fields.
+* Support structured fields extraction.
+* Reload localizable strings in the prefab configs.
+* Migrate to Utils 0.35.
+
 # 1.1 (March 7th, 2018):
 * KSP 1.4.0 compatibility.
 * Migrate to Utils 0.31.
