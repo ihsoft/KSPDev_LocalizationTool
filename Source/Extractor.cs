@@ -158,7 +158,7 @@ static class Extractor {
 
     // Get localization for the units if present.
     var guiUnitsLoc = GetItemFromLocalizableObject(
-        info, groupKey, sortKey, spec: LocalizationLoader.KspFieldUnitsSpec);
+        info, groupKey, sortKey, spec: StdSpecTags.Units);
     if (!guiUnitsLoc.HasValue && !string.IsNullOrEmpty(attrObj.guiUnits)) {
       // Fallback to the KSPField values.
       guiUnitsLoc = new LocItem() {
