@@ -57,24 +57,53 @@ static class LocalizationManager {
       DebugEx.Error("Skip part {0} since it doesn't have a config", partInfo.name);
       return;
     }
+    var newPartConfig = ConfigStore.LoadConfigWithComments(
+      partInfo.configFileFullName, skipLineComments: true);
 
-    var partConfig = ConfigNode.Load(partInfo.partUrlConfig.parent.fullPath);
-    // Don't request "PART" since it can be a ModuleManager syntax.
-    partConfig = partConfig != null && partConfig.nodes.Count > 0 ? partConfig.nodes[0]: null;
-    if (partConfig == null) {
-      DebugEx.Error("Cannot find config for: {0}", partInfo.partUrlConfig.parent.fullPath);
+    // Get the very first part description in the file. Don't request via the "PART" name, since it
+    // can be a ModuleManager syntax.
+    // TODO(ihsoft) Fix https://github.com/ihsoft/KSPDev_LocalizationTool/issues/2
+    newPartConfig = newPartConfig != null && newPartConfig.nodes.Count > 0
+        ? newPartConfig.nodes[0]
+        : null;
+    if (newPartConfig == null) {
+      DebugEx.Error("Cannot find config for: {0}", partInfo.configFileFullName);
       return;
     }
 
-    DebugEx.Info("Update strings in part {0}", partInfo.name);
+    DebugEx.Info("Update strings in part {0}", partInfo.partPrefab);
     Extractor.localizablePartFields.ToList().ForEach(name => {
-      var newValue = partConfig.GetValue(name);
+      var newValue = newPartConfig.GetValue(name);
       if (newValue != null) {
         ReflectionHelper.SetReflectedString(partInfo, name, newValue);
       }
     });
 
     // Update the prefab.
+    var newModuleConfigs = newPartConfig.GetNodes("MODULE");
+    var prefabModuleConfigs = partInfo.partConfig.GetNodes("MODULE");
+    if (newModuleConfigs.Length <= prefabModuleConfigs.Length) {
+      // Due to the ModuleManager patches, the prefab config may have more modules than the
+      // disk version.
+      for (var i = 0; i < newModuleConfigs.Length; i++) {
+        var newConf = newModuleConfigs[i];
+        var prefabConf = prefabModuleConfigs[i];
+        if (newConf.GetValue("name") == prefabConf.GetValue("name")) {
+          MergeLocalizableValues(prefabConf, newConf);
+        } else {
+          DebugEx.Warning("Skipping module on part {0}: newName={1}, prefabName={2}",
+                          partInfo.name, newConf.GetValue("name"), prefabConf.GetValue("name"));
+        }
+      }
+    } else {
+      // MM patches can delete modules, but this is not supported.
+      DebugEx.Error(
+          "Cannot refresh part config fields in part {0}. Config file has more modules than the"
+          + " prefab: in file={1}, in prefab={2}",
+          partInfo.name, newModuleConfigs.Length, prefabModuleConfigs.Length);
+    }
+
+    // Update the prefab module info.
     // This is a simplified algorythm of the part localization. It may not work for all the cases.
     var partModules = partInfo.partPrefab.Modules.GetModules<PartModule>()
         .Where(x => !string.IsNullOrEmpty(x.GetInfo().Trim()))
@@ -120,6 +149,32 @@ static class LocalizationManager {
           DebugEx.Info("Localize menu for part {0}", m.part);
           m.titleText.text = m.part.partInfo.title;
         });
+  }
+
+  /// <summary>Merges localizable values from one config node to another.</summary>
+  /// <remarks>
+  /// The values in the nodes must be in the same order. The <paramref name="toNode"/> is allowed
+  /// to have more values, the extra values will be silently skipped.
+  /// </remarks>
+  /// <param name="toNode">The node to merge value to.</param>
+  /// <param name="fromNode">The node to merge values from. It must have comments loaded.</param>
+  static void MergeLocalizableValues(ConfigNode toNode, ConfigNode fromNode) {
+    for (var i = 0; i < fromNode.values.Count && i < toNode.values.Count; i++) {
+      var fromValue = fromNode.values[i];
+      var toValue = toNode.values[i];
+      if (fromValue.name != toValue.name) {
+        DebugEx.Error("Cannot merge config nodes.\nTO:\n{0}\nFROM:\n{1}", toNode, fromNode);
+        return;
+      }
+      if (fromValue.comment != null
+          && fromValue.comment.StartsWith("#", StringComparison.Ordinal)) {
+        toValue.value = fromValue.value;
+        toValue.comment = fromValue.comment;
+      }
+    }
+    for (var i = 0; i < fromNode.nodes.Count && i < toNode.nodes.Count; i++) {
+      MergeLocalizableValues(toNode.nodes[i], fromNode.nodes[i]);
+    }
   }
 }
 
