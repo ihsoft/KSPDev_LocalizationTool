@@ -357,8 +357,6 @@ class Controller : MonoBehaviour, IHasGUI {
     configs.ToList().ForEach(
         x => LocalizationManager.UpdateLocalizationContent(x.filePath, x.node));
 
-    // FIXME: reload configs in the scene's parts.
-
     // Update the part infos for the new language/content.
     var selectedParts = new HashSet<string>(
         parts.SelectMany(x => x.parts).Select(x => x.name));
@@ -443,7 +441,6 @@ class Controller : MonoBehaviour, IHasGUI {
     DebugEx.Warning("Update all the part prefabs due to the settings change");
     PartLoader.LoadedPartsList
         .ForEach(LocalizationManager.LocalizePartInfo);
-    // FIXME: reload configs in the scene's parts.
     LocalizationManager.LocalizePartMenus();
 
     // Force all strings to recalculate in case of they were cached.
