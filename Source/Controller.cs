@@ -221,7 +221,7 @@ class Controller : MonoBehaviour, IHasGUI {
         GuiActionUpdateTargets(lookupPrefix);
       }
       windowRect = GUILayout.Window(
-          0, windowRect, MakeConsoleWindow,
+          GetInstanceID(), windowRect, MakeConsoleWindow,
           MainWindowTitleTxt.Format(GetType().Assembly.GetName().Version));
     }
   }
