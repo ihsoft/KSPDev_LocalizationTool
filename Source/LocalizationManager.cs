@@ -124,6 +124,7 @@ static class LocalizationManager {
         .ForEach(m => {
           DebugEx.Info("Localize menu for part {0}", m.part);
           m.titleText.text = m.part.partInfo.title;
+          m.displayDirty = true;
         });
   }
 
