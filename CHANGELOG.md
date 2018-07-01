@@ -1,3 +1,5 @@
+# 1.3 (pre):
+
 # 1.2 (June 25th, 2018):
 * Support tags extraction from non-standard part fields.
 * Support structured fields extraction.
