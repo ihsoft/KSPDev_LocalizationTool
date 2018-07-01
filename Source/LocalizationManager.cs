@@ -79,30 +79,6 @@ static class LocalizationManager {
       }
     });
 
-    // Update the prefab.
-    var newModuleConfigs = newPartConfig.GetNodes("MODULE");
-    var prefabModuleConfigs = partInfo.partConfig.GetNodes("MODULE");
-    if (newModuleConfigs.Length <= prefabModuleConfigs.Length) {
-      // Due to the ModuleManager patches, the prefab config may have more modules than the
-      // disk version.
-      for (var i = 0; i < newModuleConfigs.Length; i++) {
-        var newConf = newModuleConfigs[i];
-        var prefabConf = prefabModuleConfigs[i];
-        if (newConf.GetValue("name") == prefabConf.GetValue("name")) {
-          MergeLocalizableValues(prefabConf, newConf);
-        } else {
-          DebugEx.Warning("Skipping module on part {0}: newName={1}, prefabName={2}",
-                          partInfo.name, newConf.GetValue("name"), prefabConf.GetValue("name"));
-        }
-      }
-    } else {
-      // MM patches can delete modules, but this is not supported.
-      DebugEx.Error(
-          "Cannot refresh part config fields in part {0}. Config file has more modules than the"
-          + " prefab: in file={1}, in prefab={2}",
-          partInfo.name, newModuleConfigs.Length, prefabModuleConfigs.Length);
-    }
-
     // Update the prefab module info.
     // This is a simplified algorythm of the part localization. It may not work for all the cases.
     var partModules = partInfo.partPrefab.Modules.GetModules<PartModule>()
@@ -149,6 +125,51 @@ static class LocalizationManager {
           DebugEx.Info("Localize menu for part {0}", m.part);
           m.titleText.text = m.part.partInfo.title;
         });
+  }
+
+  /// <summary>Localizes the values in the part's prefab config.</summary>
+  /// <param name="partInfo">The p[art info to localize.</param>
+  public static void LocalizePrefab(AvailablePart partInfo) {
+    if (partInfo.partUrlConfig == null) {
+      DebugEx.Error("Skip part {0} since it doesn't have a config", partInfo.name);
+      return;
+    }
+    var newPartConfig = ConfigStore.LoadConfigWithComments(
+        partInfo.configFileFullName, skipLineComments: true);
+
+    // Get the very first part description in the file. Don't request via the "PART" name, since it
+    // can be a ModuleManager syntax.
+    // TODO(ihsoft) Fix https://github.com/ihsoft/KSPDev_LocalizationTool/issues/2
+    newPartConfig = newPartConfig != null && newPartConfig.nodes.Count > 0
+        ? newPartConfig.nodes[0]
+        : null;
+    if (newPartConfig == null) {
+      DebugEx.Error("Cannot find config for: {0}", partInfo.configFileFullName);
+      return;
+    }
+
+    var newModuleConfigs = newPartConfig.GetNodes("MODULE");
+    var prefabModuleConfigs = partInfo.partConfig.GetNodes("MODULE");
+    if (newModuleConfigs.Length <= prefabModuleConfigs.Length) {
+      // Due to the ModuleManager patches, the prefab config may have more modules than the
+      // disk version.
+      for (var i = 0; i < newModuleConfigs.Length; i++) {
+        var newConf = newModuleConfigs[i];
+        var prefabConf = prefabModuleConfigs[i];
+        if (newConf.GetValue("name") == prefabConf.GetValue("name")) {
+          MergeLocalizableValues(prefabConf, newConf);
+        } else {
+          DebugEx.Warning("Skipping module on part {0}: newName={1}, prefabName={2}",
+                          partInfo.name, newConf.GetValue("name"), prefabConf.GetValue("name"));
+        }
+      }
+    } else {
+      // MM patches can delete modules, but this is not supported.
+      DebugEx.Error(
+          "Cannot refresh part config fields in part {0}. Config file has more modules than the"
+          + " prefab: in file={1}, in prefab={2}",
+          partInfo.name, newModuleConfigs.Length, prefabModuleConfigs.Length);
+    }
   }
 
   /// <summary>Merges localizable values from one config node to another.</summary>

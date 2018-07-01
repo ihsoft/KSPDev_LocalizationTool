@@ -360,6 +360,15 @@ class Controller : MonoBehaviour, IHasGUI {
     // Update the part infos for the new language/content.
     var selectedParts = new HashSet<string>(
         parts.SelectMany(x => x.parts).Select(x => x.name));
+
+    PartLoader.LoadedPartsList
+        .Where(x => selectedParts.Contains(x.name))
+        .ToList()
+        .ForEach(LocalizationManager.LocalizePrefab);
+
+    // Notify listeners about the localization content changes.
+    GameEvents.onLanguageSwitched.Fire();
+
     PartLoader.LoadedPartsList
         .Where(x => selectedParts.Contains(x.name))
         .ToList()
@@ -368,7 +377,7 @@ class Controller : MonoBehaviour, IHasGUI {
     // Update open part menus.
     LocalizationManager.LocalizePartMenus();
 
-    // Notify listeners about the localization content changes.
+    // Force the localization methods to trigger on the refreshed prefab.
     GameEvents.onLanguageSwitched.Fire();
   }
 
@@ -439,11 +448,18 @@ class Controller : MonoBehaviour, IHasGUI {
   /// <summary>Triggers the part prefabs update.</summary>
   void GuiActionUpdateAllParts() {
     DebugEx.Warning("Update all the part prefabs due to the settings change");
+
+    PartLoader.LoadedPartsList
+        .ForEach(LocalizationManager.LocalizePrefab);
+
+    // Force all strings to recalculate in case of they were cached.
+    GameEvents.onLanguageSwitched.Fire();
+
     PartLoader.LoadedPartsList
         .ForEach(LocalizationManager.LocalizePartInfo);
     LocalizationManager.LocalizePartMenus();
 
-    // Force all strings to recalculate in case of they were cached.
+    // Force the localization methods to trigger on the refreshed prefab.
     GameEvents.onLanguageSwitched.Fire();
   }
 

@@ -1,4 +1,5 @@
 # 1.3 (pre):
+* Improve the strings refresh algorythm to cover cases when the part info depends on the config.
 
 # 1.2 (June 25th, 2018):
 * Support tags extraction from non-standard part fields.
