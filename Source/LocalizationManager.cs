@@ -58,7 +58,7 @@ static class LocalizationManager {
       return;
     }
     var newPartConfig = ConfigStore.LoadConfigWithComments(
-      partInfo.configFileFullName, skipLineComments: true);
+        partInfo.configFileFullName, skipLineComments: true);
 
     // Get the very first part description in the file. Don't request via the "PART" name, since it
     // can be a ModuleManager syntax.
