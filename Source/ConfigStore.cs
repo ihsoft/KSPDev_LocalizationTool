@@ -108,12 +108,12 @@ static class ConfigStore {
       return ConfigNode.Load(fileFullName);  // Just for the sake of the logs.
     }
 
+    // $1 - key
+    var nodeMultiLinePrefixDeclRe = new Regex(@"^\s*(\S+)\s*$");
     // $1 - key, $2 - other data
-    var nodeMultiLinePrefixDeclRe = new Regex(@"^\s*([a-zA-Z_]+[a-zA-Z0-9_]*)$");
-    // $1 - key, $2 - other data
-    var nodeSameLineDeclRe = new Regex(@"^\s*([a-zA-Z_]+[a-zA-Z0-9_]*)\s*{\s*(.*?)?\s*$");
+    var nodeSameLineDeclRe = new Regex(@"^\s*(\S+)\s*{\s*(.*?)\s*$");
     // $1 - key, $2 - value
-    var keyValueLineDeclRe = new Regex(@"^\s*([a-zA-Z_]+[a-zA-Z0-9_]*)\s*=\s*(.*?)$");
+    var keyValueLineDeclRe = new Regex(@"^\s*(\S+)\s*=\s*(.*?)\s*$");
 
     var lines = File.ReadAllLines(fileFullName)
         .Select(x => x.Trim())
@@ -166,7 +166,7 @@ static class ConfigStore {
         }
       }
       
-      // Try handling the simples case: a key value pair (with an optional comment).
+      // Try handling the simplest case: a key value pair (with an optional comment).
       var keyValueMatch = keyValueLineDeclRe.Match(line);
       if (keyValueMatch.Success) {
         // Localize the value if it starts from "#". There can be false positives.
@@ -196,19 +196,27 @@ static class ConfigStore {
         lineLeftOff = sameLineMatch.Groups[2].Value;
         lines.RemoveAt(0);
         lineNum++;
-      } else if (nodeMultiLinePrefixDeclRe.IsMatch(line)
-                 && lines.Count > 0 && lines[1].StartsWith("{", StringComparison.Ordinal)) {
-        // The node declaration starts on the next line.
-        var multiLineMatch = nodeMultiLinePrefixDeclRe.Match(line);
-        nodeName = multiLineMatch.Groups[1].Value;
-        lines.RemoveAt(0);
-        lineNum++;
-        lineLeftOff = lines[0].Substring(1);  // Chop off "{"
-        if (lineLeftOff.Length == 0) {
+      } else if (nodeMultiLinePrefixDeclRe.IsMatch(line)) {
+        var firstNonEmpty = lines
+            .Skip(1)
+            .SkipWhile(l => l.Length == 0)
+            .FirstOrDefault();
+        if (firstNonEmpty != null && firstNonEmpty.StartsWith("{", StringComparison.Ordinal)) {
+          var multiLineMatch = nodeMultiLinePrefixDeclRe.Match(line);
+          nodeName = multiLineMatch.Groups[1].Value;
           lines.RemoveAt(0);
           lineNum++;
-        } else {
-          lines[0] = lineLeftOff;
+          while (lines[0].Length == 0) {
+            lines.RemoveAt(0);
+            lineNum++;
+          }
+          lineLeftOff = lines[0].Substring(1);  // Chop off "{"
+          if (lineLeftOff.Length == 0) {
+            lines.RemoveAt(0);
+            lineNum++;
+          } else {
+            lines[0] = lineLeftOff;
+          }
         }
       }
       if (nodeName == null) {
