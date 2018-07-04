@@ -10,14 +10,21 @@ struct LocItem {
   public string fullFilePath;
 
   /// <summary>A string to use to group the similar items together.</summary>
-  /// <remarks>It can be anything, but usually it's something meaningful.</remarks>
+  /// <remarks>
+  /// It can be anything, but usually it's something meaningful. This value is exposed in the export
+  /// file.
+  /// </remarks>
   public string groupKey;
 
-  /// <summary>A string to use to sort the items within the group.</summary>
+  /// <summary>A string to use to group the items within the group.</summary>
   /// <remarks>
-  /// The items are always sorted by this value first. Then, an extra sorting can be applied
-  /// depening on the writing preferences.
+  /// It can be anything, but usually it's something meaningful. This value is exposed in the export
+  /// file.
   /// </remarks>
+  public string subgroupKey;
+
+  /// <summary>A string to use to sort the items within the sub-group.</summary>
+  /// <remarks>If not set, than the item will appear <i>after</i> the other sort keys.</remarks>
   public string sortKey;
 
   /// <summary>The tag to use for resolution of the localized content.</summary>
