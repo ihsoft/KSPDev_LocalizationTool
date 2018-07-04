@@ -53,6 +53,7 @@ static class ConfigStore {
       var byGroupKey = items
           .OrderBy(x => x.groupKey)
           .ThenBy(x => x.subgroupKey)
+          .ThenBy(x => string.IsNullOrEmpty(x.sortKey) ? "\0xff" : x.sortKey)
           .ThenBy(x => x.locTag)
           .GroupBy(x => new { x.groupKey, x.subgroupKey });
       

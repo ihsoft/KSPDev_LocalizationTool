@@ -4,6 +4,7 @@
 * Support more markup cases in the config node parser.
 * Improve handling multi-part configs and MM pacthes in the part configs.
 * [Fix] Use unique ID for the GUI dialog to not conflict with the other game dialogs.
+* [Fix #6] Make the rules on how the part fields get sorted.
 
 # 1.2 (June 25th, 2018):
 * Support tags extraction from non-standard part fields.

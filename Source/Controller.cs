@@ -16,7 +16,7 @@ using UnityEngine;
 
 namespace KSPDev.LocalizationTool {
 
-[PersistentFieldsFileAttribute("KSPDev/LocalizationTool/PluginData/settings.cfg", "UI")]
+[PersistentFieldsFileAttribute("KSPDev/LocalizationTool/PluginData/settings.cfg", "")]
 [PersistentFieldsFileAttribute("KSPDev/LocalizationTool/PluginData/session.cfg", "UI",
                                Controller.SessionGroup)]
 class Controller : MonoBehaviour, IHasGUI {
@@ -156,11 +156,14 @@ class Controller : MonoBehaviour, IHasGUI {
   const string SessionGroup = "session";
 
   #region Mod's settings
-  [PersistentField("toggleConsoleKey")]
+  [PersistentField("UI/toggleConsoleKey")]
   static string toggleConsoleKey = "&f8";
 
-  [PersistentField("scrollHeight")]
+  [PersistentField("UI/scrollHeight")]
   static int scrollHeight = 150;
+
+  [PersistentField("Export/partFieldsSorting")]
+  internal static string partFieldsSorting = "title,manufacturer,description,tags";
   #endregion
 
   #region Session settings

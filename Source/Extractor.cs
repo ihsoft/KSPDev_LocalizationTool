@@ -61,8 +61,13 @@ static class Extractor {
               fieldName, config.GetValue("name"), field.comment);
         }
       }
+      var fieldOrderStr = string.Format(
+          "\0x00_{0:000}_{1}",  // Use zero prefix to place it before anything else.
+          Controller.partFieldsSorting.IndexOf(fieldName, StringComparison.Ordinal),
+          fieldName);
       var item = new LocItem() {
           groupKey = "Part: " + part.name,
+          sortKey = fieldOrderStr,
           fullFilePath = part.configFileFullName,
           locTag = locTag ?? MakePartFieldLocalizationTag(config.GetValue("name"), fieldName),
           locDefaultValue = locDefaultValue ?? field.value,
