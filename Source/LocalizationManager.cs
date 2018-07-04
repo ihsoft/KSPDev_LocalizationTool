@@ -5,6 +5,7 @@
 using KSP.Localization;
 using KSP.UI;
 using KSPDev.ConfigUtils;
+using KSPDev.FSUtils;
 using KSPDev.LogUtils;
 using System;
 using System.Collections.Generic;
@@ -53,21 +54,8 @@ static class LocalizationManager {
   /// <seealso cref="UpdateLocalizationContent"/>
   /// <seealso cref="Extractor.localizablePartFields"/>
   public static void LocalizePartInfo(AvailablePart partInfo) {
-    if (partInfo.partUrlConfig == null) {
-      DebugEx.Error("Skip part {0} since it doesn't have a config", partInfo.name);
-      return;
-    }
-    var newPartConfig = ConfigStore.LoadConfigWithComments(
-        partInfo.configFileFullName, skipLineComments: true);
-
-    // Get the very first part description in the file. Don't request via the "PART" name, since it
-    // can be a ModuleManager syntax.
-    // TODO(ihsoft) Fix https://github.com/ihsoft/KSPDev_LocalizationTool/issues/2
-    newPartConfig = newPartConfig != null && newPartConfig.nodes.Count > 0
-        ? newPartConfig.nodes[0]
-        : null;
+    var newPartConfig = GetPartPrefabConfig(partInfo);
     if (newPartConfig == null) {
-      DebugEx.Error("Cannot find config for: {0}", partInfo.configFileFullName);
       return;
     }
 
@@ -131,24 +119,10 @@ static class LocalizationManager {
   /// <summary>Localizes the values in the part's prefab config.</summary>
   /// <param name="partInfo">The p[art info to localize.</param>
   public static void LocalizePrefab(AvailablePart partInfo) {
-    if (partInfo.partUrlConfig == null) {
-      DebugEx.Error("Skip part {0} since it doesn't have a config", partInfo.name);
-      return;
-    }
-    var newPartConfig = ConfigStore.LoadConfigWithComments(
-        partInfo.configFileFullName, skipLineComments: true);
-
-    // Get the very first part description in the file. Don't request via the "PART" name, since it
-    // can be a ModuleManager syntax.
-    // TODO(ihsoft) Fix https://github.com/ihsoft/KSPDev_LocalizationTool/issues/2
-    newPartConfig = newPartConfig != null && newPartConfig.nodes.Count > 0
-        ? newPartConfig.nodes[0]
-        : null;
+    var newPartConfig = GetPartPrefabConfig(partInfo);
     if (newPartConfig == null) {
-      DebugEx.Error("Cannot find config for: {0}", partInfo.configFileFullName);
       return;
     }
-
     var newModuleConfigs = newPartConfig.GetNodes("MODULE");
     var prefabModuleConfigs = partInfo.partConfig.GetNodes("MODULE");
     if (newModuleConfigs.Length <= prefabModuleConfigs.Length) {
@@ -197,6 +171,49 @@ static class LocalizationManager {
     for (var i = 0; i < fromNode.nodes.Count && i < toNode.nodes.Count; i++) {
       MergeLocalizableValues(toNode.nodes[i], fromNode.nodes[i]);
     }
+  }
+
+  /// <summary>Reads part's config file from file for the requested part.</summary>
+  /// <remarks>
+  /// It loads the config with the inline comments. For the multi-part configs the right node is
+  /// located. If the config has MM patches for the "PART" section, then they are dropped, but a
+  /// warning is logged.
+  /// </remarks>
+  /// <param name="partInfo">The part to get config for.</param>
+  /// <returns>The config or <c>null</c> if config cannot be found or loaded.</returns>
+  static ConfigNode GetPartPrefabConfig(AvailablePart partInfo) {
+    if (string.IsNullOrEmpty(partInfo.configFileFullName)) {
+      DebugEx.Error("Skip part {0} since it doesn't have a config", partInfo.name);
+      return null;
+    }
+    var config = ConfigStore.LoadConfigWithComments(
+        partInfo.configFileFullName, skipLineComments: true);
+    if (config == null || config.nodes.Count == 0) {
+      DebugEx.Error("Config node is invalid for the part {0}\n{1}", partInfo.name, config);
+      return null;
+    }
+    ConfigNode result = null;
+    for (var i = 0; i < config.nodes.Count; i++) {
+      var node = config.nodes[i];
+      if (node.name != "PART") {
+        DebugEx.Warning("Non-part node in config of part {0}: {1}", partInfo.name, node.name);
+        continue;
+      }
+      // KSP mangles with the part names translating "." to "_" and back. So just in case do it on
+      // the both sides.
+      if (node.GetValue("name").Replace(".", "_") != partInfo.name.Replace(".", "_")) {
+        DebugEx.Warning("Node in config of part '{0}' doesn't match the part name: '{1}'",
+                        partInfo.name, node.GetValue("name"));
+        continue;
+      }
+      if (result == null) {
+        result = node;
+      } else {
+        DebugEx.Warning(
+            "Skipping node #{0} in config of part {1} due to duplication", i, partInfo.name);
+      }
+    }
+    return result;
   }
 }
 

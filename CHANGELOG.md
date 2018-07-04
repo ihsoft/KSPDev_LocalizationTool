@@ -2,6 +2,7 @@
 * Improve the strings refresh algorythm to cover cases when the part info depends on the config.
 * Invalidate menus to have `UI_Control` fields updated.
 * Support more markup cases in the config node parser.
+* Improve handling multi-part configs and MM pacthes in the part configs.
 * [Fix] Use unique ID for the GUI dialog to not conflict with the other game dialogs.
 
 # 1.2 (June 25th, 2018):
