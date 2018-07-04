@@ -139,14 +139,14 @@ static class Extractor {
     }
 
     var groupKey = "Type: " + info.DeclaringType.FullName;
-    const string sortKey = "KSP Fields";
+    const string subgroupKey = "KSP Fields";
     // Get guiName localization.
-    var guiNameLoc = GetItemFromLocalizableObject(info, groupKey, sortKey);
+    var guiNameLoc = GetItemFromLocalizableObject(info, groupKey, subgroupKey);
     if (!guiNameLoc.HasValue && !string.IsNullOrEmpty(attrObj.guiName)) {
       // Fallback to the KSPField values.
       guiNameLoc = new LocItem() {
           groupKey = groupKey,
-          sortKey = sortKey,
+          subgroupKey = subgroupKey,
           fullFilePath = info.DeclaringType.Assembly.Location,
           locTag = MakeTypeMemberLocalizationTag(info),
           locDefaultValue = attrObj.guiName,
@@ -158,12 +158,12 @@ static class Extractor {
 
     // Get localization for the units if present.
     var guiUnitsLoc = GetItemFromLocalizableObject(
-        info, groupKey, sortKey, spec: StdSpecTags.Units);
+        info, groupKey, subgroupKey, spec: StdSpecTags.Units);
     if (!guiUnitsLoc.HasValue && !string.IsNullOrEmpty(attrObj.guiUnits)) {
       // Fallback to the KSPField values.
       guiUnitsLoc = new LocItem() {
           groupKey = groupKey,
-          sortKey = sortKey,
+          subgroupKey = subgroupKey,
           fullFilePath = info.DeclaringType.Assembly.Location,
           locTag = MakeTypeMemberLocalizationTag(info, nameSuffix: "_Units"),
           locDefaultValue = attrObj.guiUnits,
@@ -191,7 +191,7 @@ static class Extractor {
         // Fallback to the KSPEvent values.
         guiNameLoc = new LocItem() {
             groupKey = groupKey,
-            sortKey = sortKey,
+            subgroupKey = sortKey,
             fullFilePath = info.DeclaringType.Assembly.Location,
             locTag = MakeTypeMemberLocalizationTag(info),
             locDefaultValue = attrObj.guiName,
@@ -219,7 +219,7 @@ static class Extractor {
         // Fallback to the KSPAction values.
         guiNameLoc = new LocItem() {
             groupKey = groupKey,
-            sortKey = sortKey,
+            subgroupKey = sortKey,
             fullFilePath = info.DeclaringType.Assembly.Location,
             locTag = MakeTypeMemberLocalizationTag(info),
             locDefaultValue = attrObj.guiName,
@@ -272,7 +272,7 @@ static class Extractor {
     }
     res.Add(new LocItem() {
         groupKey = "Type: " + info.DeclaringType.FullName,
-        sortKey = "KSPDev Messages",
+        subgroupKey = "KSPDev Messages",
         fullFilePath = field.FieldType.Assembly.Location,
         locTag = msgTag,
         locDefaultValue = defaultTemplate,
@@ -311,7 +311,7 @@ static class Extractor {
     }
     return new LocItem() {
         groupKey = groupKey,
-        sortKey = sortKey,
+        subgroupKey = sortKey,
         fullFilePath = info.DeclaringType.Assembly.Location,
         locTag = locTag,
         locDefaultValue = ReflectionHelper.GetReflectedString(attrObj, "defaultTemplate"),

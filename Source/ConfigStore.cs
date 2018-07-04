@@ -52,13 +52,13 @@ static class ConfigStore {
       file.Write("Localization\n{\n\t" + lang + "\n\t{\n");
       var byGroupKey = items
           .OrderBy(x => x.groupKey)
-          .ThenBy(x => x.sortKey)
+          .ThenBy(x => x.subgroupKey)
           .ThenBy(x => x.locTag)
-          .GroupBy(x => new { x.groupKey, x.sortKey });
+          .GroupBy(x => new { x.groupKey, x.subgroupKey });
       
       foreach (var groupKeyItems in byGroupKey) {
-        var groupText = !string.IsNullOrEmpty(groupKeyItems.Key.sortKey)
-            ? groupKeyItems.Key.groupKey + ", " + groupKeyItems.Key.sortKey
+        var groupText = !string.IsNullOrEmpty(groupKeyItems.Key.subgroupKey)
+            ? groupKeyItems.Key.groupKey + ", " + groupKeyItems.Key.subgroupKey
             : groupKeyItems.Key.groupKey;
         file.WriteLine("\n\t\t// ********** " + groupText + "\n");
         foreach (var item in groupKeyItems) {
