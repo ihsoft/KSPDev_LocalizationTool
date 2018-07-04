@@ -457,6 +457,8 @@ class Controller : MonoBehaviour, IHasGUI {
 
     PartLoader.LoadedPartsList
         .ForEach(LocalizationManager.LocalizePartInfo);
+
+    // Update open part menus.
     LocalizationManager.LocalizePartMenus();
 
     // Force the localization methods to trigger on the refreshed prefab.
