@@ -9,7 +9,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using System.Text.RegularExpressions;
-using UnityEngine;
 
 namespace KSPDev.LocalizationTool {
 
@@ -176,6 +175,43 @@ static class Extractor {
     }
     if (guiUnitsLoc.HasValue) {
       res.Add(guiUnitsLoc.Value);
+    }
+
+    // Get localizations for UI_Control
+    var uiControlAttr = info.GetCustomAttributes(false).OfType<UI_Control>().FirstOrDefault();
+    if (uiControlAttr != null) {
+      var uiToggleAttr = uiControlAttr as UI_Toggle;
+      if (uiToggleAttr != null) {
+        var guiEnabledLoc = GetItemFromLocalizableObject(
+            info, groupKey, subgroupKey, spec: StdSpecTags.ToggleEnabled);
+        if (!guiEnabledLoc.HasValue && !string.IsNullOrEmpty(uiToggleAttr.displayEnabledText)) {
+          guiEnabledLoc = new LocItem() {
+              groupKey = groupKey,
+              subgroupKey = subgroupKey,
+              fullFilePath = info.DeclaringType.Assembly.Location,
+              locTag = MakeTypeMemberLocalizationTag(info, nameSuffix: "_ToggleEnabled"),
+              locDefaultValue = uiToggleAttr.displayEnabledText,
+          };
+        }
+        if (guiEnabledLoc.HasValue) {
+          res.Add(guiEnabledLoc.Value);
+        }
+
+        var guiDisabledLoc = GetItemFromLocalizableObject(
+            info, groupKey, subgroupKey, spec: StdSpecTags.ToggleDisabled);
+        if (!guiDisabledLoc.HasValue && !string.IsNullOrEmpty(uiToggleAttr.displayDisabledText)) {
+          guiDisabledLoc = new LocItem() {
+              groupKey = groupKey,
+              subgroupKey = subgroupKey,
+              fullFilePath = info.DeclaringType.Assembly.Location,
+              locTag = MakeTypeMemberLocalizationTag(info, nameSuffix: "_ToggleDisabled"),
+              locDefaultValue = uiToggleAttr.displayDisabledText,
+          };
+        }
+        if (guiDisabledLoc.HasValue) {
+          res.Add(guiDisabledLoc.Value);
+        }
+      }
     }
 
     return res;
