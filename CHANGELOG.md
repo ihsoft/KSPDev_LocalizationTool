@@ -3,6 +3,7 @@
 * Invalidate menus to have `UI_Control` fields updated.
 * Support more markup cases in the config node parser.
 * Improve handling multi-part configs and MM pacthes in the part configs.
+* Migrate to Utils 0.36.
 * [Fix] Use unique ID for the GUI dialog to not conflict with the other game dialogs.
 * [Fix #6] Make the rules on how the part fields get sorted.
 
