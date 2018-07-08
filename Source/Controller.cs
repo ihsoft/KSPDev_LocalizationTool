@@ -18,7 +18,7 @@ namespace KSPDev.LocalizationTool {
 
 [PersistentFieldsFileAttribute("KSPDev/LocalizationTool/PluginData/settings.cfg", "")]
 [PersistentFieldsFileAttribute("KSPDev/LocalizationTool/PluginData/session.cfg", "UI",
-                               Controller.SessionGroup)]
+                               StdPersistentGroups.SessionGroup)]
 class Controller : MonoBehaviour, IHasGUI {
   #region Localizable UI strings
   static readonly Message<Version> MainWindowTitleTxt = new Message<Version>(
@@ -148,13 +148,6 @@ class Controller : MonoBehaviour, IHasGUI {
   }
   #endregion
 
-  /// <summary>Name of the persistent group to keep session settings in.</summary>
-  /// <remarks>
-  /// Session keeps current UI and layout settings. They get changed frequently and saved/loaded on
-  /// every scene.
-  /// </remarks>
-  const string SessionGroup = "session";
-
   #region Mod's settings
   [PersistentField("UI/toggleConsoleKey")]
   static string toggleConsoleKey = "&f8";
@@ -167,17 +160,17 @@ class Controller : MonoBehaviour, IHasGUI {
   #endregion
 
   #region Session settings
-  [PersistentField("windowPos", group = SessionGroup)]
+  [PersistentField("windowPos", group = StdPersistentGroups.SessionGroup)]
   static Vector2 windowPos = new Vector2(0, 0);
 
   /// <summary>Specifies if debug console is visible.</summary>
-  [PersistentField("isOpen", group = SessionGroup)]
+  [PersistentField("isOpen", group = StdPersistentGroups.SessionGroup)]
   static bool isUIVisible;
 
-  [PersistentField("lookupPrefix", group = SessionGroup)]
+  [PersistentField("lookupPrefix", group = StdPersistentGroups.SessionGroup)]
   string lookupPrefix = "";
 
-  [PersistentField("showNoModulesAssemblies", group = SessionGroup)]
+  [PersistentField("showNoModulesAssemblies", group = StdPersistentGroups.SessionGroup)]
   bool allowNoModulesAssemblies;
   #endregion
 
@@ -199,7 +192,8 @@ class Controller : MonoBehaviour, IHasGUI {
   /// <summary>Only loads session settings.</summary>
   void Awake() {
     ConfigAccessor.ReadFieldsInType(typeof(Controller), null /* instance */);
-    ConfigAccessor.ReadFieldsInType(typeof(Controller), this, group: SessionGroup);
+    ConfigAccessor.ReadFieldsInType(
+        typeof(Controller), this, group: StdPersistentGroups.SessionGroup);
     toggleConsoleKeyEvent = Event.KeyboardEvent(toggleConsoleKey);
     windowRect = new Rect(windowPos, windowSize);
   }
@@ -207,7 +201,8 @@ class Controller : MonoBehaviour, IHasGUI {
   /// <summary>Only stores session settings.</summary>
   void OnDestroy() {
     windowPos = windowRect.position;
-    ConfigAccessor.WriteFieldsFromType(typeof(Controller), this, group: SessionGroup);
+    ConfigAccessor.WriteFieldsFromType(
+        typeof(Controller), this, group: StdPersistentGroups.SessionGroup);
   }
   #endregion
 
