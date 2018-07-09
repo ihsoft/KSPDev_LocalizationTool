@@ -447,6 +447,13 @@ class Controller : MonoBehaviour, IHasGUI {
   void GuiActionUpdateAllParts() {
     DebugEx.Warning("Update all the part prefabs due to the settings change");
 
+    // Reload all the localization files.
+    GameDatabase.Instance.GetConfigs("Localization")
+        .Where(x => x.config.GetNodes(Localizer.CurrentLanguage).Any())
+        .ToList()
+        .ForEach(x => LocalizationManager.UpdateLocalizationContent(
+            x.parent.fullPath, x.config.GetNodes(Localizer.CurrentLanguage).FirstOrDefault()));
+    
     PartLoader.LoadedPartsList
         .ForEach(LocalizationManager.LocalizePrefab);
 

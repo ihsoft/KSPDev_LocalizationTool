@@ -1,6 +1,7 @@
 # 1.4 (pre-release):
 * [Change] Include language files in the installation package.
 * [Enhancement] Add Spanish localization (ES_es).
+* [Enhancement] Update all the localization files in the game when "Upadte all parts" is selected.
 
 # 1.3 (July 7th, 2018):
 * Improve the strings refresh algorythm to cover cases when the part info depends on the config.
