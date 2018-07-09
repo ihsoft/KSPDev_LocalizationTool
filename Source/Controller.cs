@@ -346,40 +346,6 @@ class Controller : MonoBehaviour, IHasGUI {
     ShowCompletionDialog(StringsExportedDlgTitle, FileSavedTxt.Format(filePath));
   }
 
-  /// <summary>Saves the strings for the selected entities into a new file.</summary>
-  /// <param name="configs">The configs to update the localization strings for.</param>
-  /// <param name="parts">The parts to update the string in.</param>
-  void GuiActionRefreshStrings(IEnumerable<ConfigRecord> configs,
-                               IEnumerable<PartsRecord> parts) {
-    // Updatate game's database with a fresh content from the disk.
-    configs.ToList().ForEach(
-        x => LocalizationManager.UpdateLocalizationContent(x.filePath, x.node));
-
-    // Update the part infos for the new language/content.
-    var selectedParts = new HashSet<string>(
-        parts.SelectMany(x => x.parts).Select(x => x.name));
-
-    PartLoader.LoadedPartsList
-        .Where(x => selectedParts.Contains(x.name))
-        .ToList()
-        .ForEach(LocalizationManager.LocalizePrefab);
-    LocalizationManager.ReloadPartModuleStrings(selectedParts);
-
-    // Notify listeners about the localization content changes.
-    GameEvents.onLanguageSwitched.Fire();
-
-    PartLoader.LoadedPartsList
-        .Where(x => selectedParts.Contains(x.name))
-        .ToList()
-        .ForEach(LocalizationManager.LocalizePartInfo);
-
-    // Update open part menus.
-    LocalizationManager.LocalizePartMenus();
-
-    // Force the localization methods to trigger on the refreshed prefab.
-    GameEvents.onLanguageSwitched.Fire();
-  }
-
   /// <summary>Finds all the entities for the prefix, and populates the list.</summary>
   /// <param name="prefix">The prefix to find URL by.</param>
   void GuiActionUpdateTargets(string prefix) {
@@ -444,9 +410,45 @@ class Controller : MonoBehaviour, IHasGUI {
     }
   }
 
+  /// <summary>Saves the strings for the selected entities into a new file.</summary>
+  /// <param name="configs">The configs to update the localization strings for.</param>
+  /// <param name="parts">The parts to update the string in.</param>
+  void GuiActionRefreshStrings(IEnumerable<ConfigRecord> configs,
+                               IEnumerable<PartsRecord> parts) {
+    DebugEx.Warning("Update the seelcted part prefabs and strings due to the settings change");
+
+    // Updatate game's database with a fresh content from the disk.
+    configs.ToList().ForEach(
+        x => LocalizationManager.UpdateLocalizationContent(x.filePath, x.node));
+
+    // Update the part infos for the new language/content.
+    var selectedParts = new HashSet<string>(
+        parts.SelectMany(x => x.parts).Select(x => x.name));
+
+    PartLoader.LoadedPartsList
+        .Where(x => selectedParts.Contains(x.name))
+        .ToList()
+        .ForEach(LocalizationManager.LocalizePrefab);
+    LocalizationManager.ReloadPartModuleStrings(selectedParts);
+
+    // Notify listeners about the localization content changes.
+    GameEvents.onLanguageSwitched.Fire();
+
+    PartLoader.LoadedPartsList
+        .Where(x => selectedParts.Contains(x.name))
+        .ToList()
+        .ForEach(LocalizationManager.LocalizePartInfo);
+
+    // Update open part menus.
+    LocalizationManager.LocalizePartMenus();
+
+    // Force the localization methods to trigger on the refreshed prefab.
+    GameEvents.onLanguageSwitched.Fire();
+  }
+
   /// <summary>Triggers the part prefabs update.</summary>
   void GuiActionUpdateAllParts() {
-    DebugEx.Warning("Update all the part prefabs due to the settings change");
+    DebugEx.Warning("Update all the part prefabs and strings due to the settings change");
 
     // Reload all the localization files.
     GameDatabase.Instance.GetConfigs("Localization")
