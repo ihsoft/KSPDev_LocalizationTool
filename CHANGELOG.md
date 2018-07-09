@@ -1,3 +1,5 @@
+# 1.4 (pre-release):
+
 # 1.3 (July 7th, 2018):
 * Improve the strings refresh algorythm to cover cases when the part info depends on the config.
 * Invalidate menus to have `UI_Control` fields updated.
