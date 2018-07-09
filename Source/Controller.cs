@@ -363,6 +363,7 @@ class Controller : MonoBehaviour, IHasGUI {
         .Where(x => selectedParts.Contains(x.name))
         .ToList()
         .ForEach(LocalizationManager.LocalizePrefab);
+    LocalizationManager.ReloadPartModuleStrings(selectedParts);
 
     // Notify listeners about the localization content changes.
     GameEvents.onLanguageSwitched.Fire();
@@ -456,6 +457,7 @@ class Controller : MonoBehaviour, IHasGUI {
     
     PartLoader.LoadedPartsList
         .ForEach(LocalizationManager.LocalizePrefab);
+    LocalizationManager.ReloadPartModuleStrings();
 
     // Force all strings to recalculate in case of they were cached.
     GameEvents.onLanguageSwitched.Fire();

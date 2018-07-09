@@ -5,7 +5,6 @@
 using KSP.Localization;
 using KSP.UI;
 using KSPDev.ConfigUtils;
-using KSPDev.FSUtils;
 using KSPDev.LogUtils;
 using System;
 using System.Collections.Generic;
@@ -137,6 +136,13 @@ static class LocalizationManager {
           DebugEx.Warning("Skipping module on part {0}: newName={1}, prefabName={2}",
                           partInfo.name, newConf.GetValue("name"), prefabConf.GetValue("name"));
         }
+        // Reload all KSPField strings in the module to get the changed version.
+        if (i < partInfo.partPrefab.Modules.Count) {
+          LoadKSPFieldsFromNode(partInfo.partPrefab.Modules[i], prefabConf);
+        } else {
+          DebugEx.Error(
+              "Cannot reload strings in {0}: module #{1} not found", partInfo.partPrefab, i);
+        }
       }
     } else {
       // MM patches can delete modules, but this is not supported.
@@ -144,6 +150,31 @@ static class LocalizationManager {
           "Cannot refresh part config fields in part {0}. Config file has more modules than the"
           + " prefab: in file={1}, in prefab={2}",
           partInfo.name, newModuleConfigs.Length, prefabModuleConfigs.Length);
+    }
+  }
+
+  /// <summary>Updates the modules in all the current vessels or parts in the editor.</summary>
+  public static void ReloadPartModuleStrings(HashSet<string> selectedParts = null) {
+    // FLIGHT: Update the part modules in all the loaded vessels.
+    if (HighLogic.LoadedSceneIsFlight) {
+      DebugEx.Info("FLIGHT: Reload parts on the vessels...");
+      FlightGlobals.Vessels
+          .Where(v => v.loaded)
+          .SelectMany(v => v.parts)
+          .Where(p => selectedParts == null || selectedParts.Contains(p.partInfo.name))
+          .ToList()
+          .ForEach(UpdateLocalizationInPartModules);
+    }
+
+    // EDITOR: Update the part modules in all the game objects in the scene.
+    if (HighLogic.LoadedSceneIsEditor) {
+      DebugEx.Info("EDITOR: Reload parts in the world...");
+      // It can be slow but we don't care - it's not a frequent operation.
+      UnityEngine.SceneManagement.SceneManager.GetActiveScene().GetRootGameObjects()
+          .Select(o => o.GetComponent<Part>())
+          .Where(p => p != null)
+          .ToList()
+          .ForEach(p => UpdateLocalizationInPartHierarchy(p, selectedParts));
     }
   }
 
@@ -214,6 +245,46 @@ static class LocalizationManager {
       }
     }
     return result;
+  }
+
+  /// <summary>Localizes the modules in the part and in all of its children parts.</summary>
+  /// <param name="rootPart">The root part to start from.</param>
+  /// <param name="selectedParts">
+  /// The names of the parts to update. If <c>null</c>, then update all.
+  /// </param>
+  static void UpdateLocalizationInPartHierarchy(Part rootPart, HashSet<string> selectedParts) {
+    if (selectedParts == null || selectedParts.Contains(rootPart.partInfo.name)) {
+      UpdateLocalizationInPartModules(rootPart);
+    }
+    rootPart.children.ForEach(p => UpdateLocalizationInPartHierarchy(p, selectedParts));
+  }
+
+  /// <summary>Updates all the localizable strings in a part.</summary>
+  /// <param name="part">The part to load the data in.</param>
+  static void UpdateLocalizationInPartModules(Part part) {
+    DebugEx.Fine("Reload part modules in {0}...", part);
+    if (part.partInfo != null && part.partInfo.partConfig != null) {
+      var moduleConfigs = part.partInfo.partConfig.GetNodes("MODULE");
+      for (var i = 0 ; i < part.Modules.Count && i < moduleConfigs.Length; i++) {
+        var module = part.Modules[i];
+        var moduleConfig = moduleConfigs[i];
+        LoadKSPFieldsFromNode(module, moduleConfig);
+      }
+    }
+  }
+
+  /// <summary>Reloads the string [KSPField] annotated fields from the provided config.</summary>
+  /// <param name="module">The module to reload the fields for.</param>
+  /// <param name="node">The config node to geth the values from.</param>
+  static void LoadKSPFieldsFromNode(PartModule module, ConfigNode node) {
+    var fields = module.Fields.Cast<BaseField>()
+        .Where(f => f.FieldInfo.FieldType == typeof(string));
+    foreach (var field in fields) {
+      var strValue = node.GetValue(field.name);
+      if (strValue != null) {
+        field.SetValue(strValue, module);
+      }
+    }
   }
 }
 
