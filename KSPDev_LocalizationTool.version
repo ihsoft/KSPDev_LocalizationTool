@@ -23,9 +23,9 @@
     "NAME": "KSPDev LocalizationTool", 
     "URL": "https://raw.githubusercontent.com/ihsoft/KSPDev_LocalizationTool/master/KSPDev_LocalizationTool.version", 
     "VERSION": {
-        "BUILD": 6763, 
+        "BUILD": 6764, 
         "MAJOR": 1, 
-        "MINOR": 3, 
-        "PATCH": 26587
+        "MINOR": 4, 
+        "PATCH": 37475
     }
 }

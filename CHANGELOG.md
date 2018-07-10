@@ -1,4 +1,4 @@
-# 1.4 (pre-release):
+# 1.4 (July 9th, 2018):
 * [Change] Include language files in the installation package.
 * [Change] Migrate to Utils 0.37. Stability fix.
 * [Change] Update EN-us localization file.
