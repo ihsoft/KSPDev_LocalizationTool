@@ -1,6 +1,7 @@
 # 1.4 (pre-release):
 * [Change] Include language files in the installation package.
 * [Change] Migrate to Utils 0.37. Stability fix.
+* [Change] Update EN-us localization file.
 * [Enhancement] Add Spanish localization (ES_es).
 * [Enhancement] Update all the localization files in the game when "Update all parts" is selected.
 * [Enhancement] Reload the stock `KSPField` on the strings refresh action.
