@@ -4,6 +4,7 @@
 * [Enhancement] Add Spanish localization (ES_es).
 * [Enhancement] Update all the localization files in the game when "Update all parts" is selected.
 * [Enhancement] Reload the stock `KSPField` on the strings refresh action.
+* [Enhancement] Export strings with respect to the currently loaded lang file.
 
 # 1.3 (July 7th, 2018):
 * Improve the strings refresh algorythm to cover cases when the part info depends on the config.
