@@ -1,4 +1,5 @@
 # 1.5 (pre-release):
+* [Fix #7] Empty one-liner node declaration absorbs all nodes downstream.
 
 # 1.4 (July 9th, 2018):
 * [Change] Include language files in the installation package.

@@ -125,9 +125,9 @@ static class ConfigStore {
     // $1 - key
     var nodeMultiLinePrefixDeclRe = new Regex(@"^\s*(\S+)\s*$");
     // $1 - key, $2 - other data
-    var nodeSameLineDeclRe = new Regex(@"^\s*(\S+)\s*{\s*(.*?)\s*$");
+    var nodeSameLineDeclRe = new Regex(@"^\s*(\S+)\s*{\s*(.*)$");
     // $1 - key, $2 - value
-    var keyValueLineDeclRe = new Regex(@"^\s*(\S+)\s*=\s*(.*?)\s*$");
+    var keyValueLineDeclRe = new Regex(@"^\s*(\S+)\s*=\s*(.*?)\s*(}.*)?$");
 
     var lines = File.ReadAllLines(fileFullName)
         .Select(x => x.Trim())
@@ -159,7 +159,7 @@ static class ConfigStore {
           lines.RemoveAt(0);
           lineNum++;
         } else {
-          lines[0] = line.Substring(1);
+          lines[0] = line.Substring(1).TrimStart();  // Chop-off "}".
         }
         continue;
       }
@@ -179,7 +179,8 @@ static class ConfigStore {
           continue;
         }
       }
-      
+      string lineLeftOff = null;
+
       // Try handling the simplest case: a key value pair (with an optional comment).
       var keyValueMatch = keyValueLineDeclRe.Match(line);
       if (keyValueMatch.Success) {
@@ -195,21 +196,22 @@ static class ConfigStore {
           value = locValue;
         }
         node.AddValue(keyValueMatch.Groups[1].Value, value, comment);
-        lines.RemoveAt(0);
-        lineNum++;
+        if (string.IsNullOrEmpty(keyValueMatch.Groups[3].Value)) {
+          lines.RemoveAt(0);
+          lineNum++;
+        } else {
+          lines[0] = keyValueMatch.Groups[3].Value;
+        }
         continue;
       }
 
       // Here it has to be a subnode. Check the otehr conditions it.
       string nodeName = null;
-      string lineLeftOff = null;
       if (nodeSameLineDeclRe.IsMatch(line)) {
         // The node declaration starts on the same line. The can be more data in the same line!
         var sameLineMatch = nodeSameLineDeclRe.Match(line);
         nodeName = sameLineMatch.Groups[1].Value;
         lineLeftOff = sameLineMatch.Groups[2].Value;
-        lines.RemoveAt(0);
-        lineNum++;
       } else if (nodeMultiLinePrefixDeclRe.IsMatch(line)) {
         var firstNonEmpty = lines
             .Skip(1)
@@ -225,13 +227,13 @@ static class ConfigStore {
             lineNum++;
           }
           lineLeftOff = lines[0].Substring(1);  // Chop off "{"
-          if (lineLeftOff.Length == 0) {
-            lines.RemoveAt(0);
-            lineNum++;
-          } else {
-            lines[0] = lineLeftOff;
-          }
         }
+      }
+      if (string.IsNullOrEmpty(lineLeftOff)) {
+        lines.RemoveAt(0);
+        lineNum++;
+      } else {
+        lines[0] = lineLeftOff.TrimStart();
       }
       if (nodeName == null) {
         DebugEx.Error("Cannot parse node at line {0} in {1}", lineNum, fileFullName);
@@ -240,6 +242,10 @@ static class ConfigStore {
       var newNode = node.AddNode(nodeName, comment);
       nodesStack.Add(newNode);
       node = newNode;
+    }
+
+    if (nodesStack.Count > 1) {
+      DebugEx.Error("Cannot properly parse file: {0}. The content can be wrong.", fileFullName);
     }
     
     return nodesStack[0];
