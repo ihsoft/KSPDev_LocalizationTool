@@ -134,11 +134,10 @@ static class ConfigStore {
         .ToList();
     var nodesStack = new List<ConfigNode>() { new ConfigNode() };
     var node = nodesStack[0];
-    var lineNum = 1;
-    while (lines.Count > 0) {
-      var line = lines[0];
+    var lineNum = 0;
+    while (lineNum < lines.Count) {
+      var line = lines[lineNum];
       if (line.Length == 0) {
-        lines.RemoveAt(0);
         lineNum++;
         if (!skipLineComments) {
           node.AddValue("__commentField", "");
@@ -154,11 +153,11 @@ static class ConfigStore {
           return null;
         }
         node = nodesStack[nodesStack.Count - 1];
-        if (line.Length == 1) {
-          lines.RemoveAt(0);
+        line = line.Substring(1).TrimStart();  // Chop-off "}".
+        if (line.Length == 0) {
           lineNum++;
         } else {
-          lines[0] = line.Substring(1).TrimStart();  // Chop-off "}".
+          lines[lineNum] = line;
         }
         continue;
       }
@@ -195,11 +194,11 @@ static class ConfigStore {
           value = locValue;
         }
         node.AddValue(keyValueMatch.Groups[1].Value, value, comment);
-        if (string.IsNullOrEmpty(keyValueMatch.Groups[3].Value)) {
-          lines.RemoveAt(0);
+        line = keyValueMatch.Groups[3].Value;
+        if (string.IsNullOrEmpty(line)) {
           lineNum++;
         } else {
-          lines[0] = keyValueMatch.Groups[3].Value;
+          lines[lineNum] = line;
         }
         continue;
       }
@@ -213,26 +212,23 @@ static class ConfigStore {
         lineLeftOff = sameLineMatch.Groups[2].Value;
       } else if (nodeMultiLinePrefixDeclRe.IsMatch(line)) {
         var firstNonEmpty = lines
-            .Skip(1)
+            .Skip(lineNum + 1)
             .SkipWhile(l => l.Length == 0)
             .FirstOrDefault();
         if (firstNonEmpty != null && firstNonEmpty.StartsWith("{", StringComparison.Ordinal)) {
           var multiLineMatch = nodeMultiLinePrefixDeclRe.Match(line);
           nodeName = multiLineMatch.Groups[1].Value;
-          lines.RemoveAt(0);
           lineNum++;
-          while (lines[0].Length == 0) {
-            lines.RemoveAt(0);
+          while (lines[lineNum].Length == 0) {
             lineNum++;
           }
-          lineLeftOff = lines[0].Substring(1);  // Chop off "{"
+          lineLeftOff = lines[lineNum].Substring(1);  // Chop off "{"
         }
       }
       if (string.IsNullOrEmpty(lineLeftOff)) {
-        lines.RemoveAt(0);
         lineNum++;
       } else {
-        lines[0] = lineLeftOff.TrimStart();
+        lines[lineNum] = lineLeftOff.TrimStart();
       }
       if (nodeName == null) {
         ReportParseError(fileFullName, line, lineNum);
