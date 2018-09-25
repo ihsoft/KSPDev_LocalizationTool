@@ -150,8 +150,7 @@ static class ConfigStore {
       if (line.StartsWith("}", StringComparison.Ordinal)) {
         nodesStack.RemoveAt(nodesStack.Count - 1);
         if (nodesStack.Count == 0) {
-          DebugEx.Error(
-              "Unexpected node close statement found at line {0} in {1}", lineNum, fileFullName);
+          ReportParseError(fileFullName, line, lineNum, message: "Unexpected node close statement");
           return null;
         }
         node = nodesStack[nodesStack.Count - 1];
@@ -236,7 +235,7 @@ static class ConfigStore {
         lines[0] = lineLeftOff.TrimStart();
       }
       if (nodeName == null) {
-        DebugEx.Error("Cannot parse node at line {0} in {1}", lineNum, fileFullName);
+        ReportParseError(fileFullName, line, lineNum);
         return null;
       }
       var newNode = node.AddNode(nodeName, comment);
@@ -388,6 +387,18 @@ static class ConfigStore {
     return c == ' ' || c == '\u00a0' || c == '\t'
         ? "\\u" + ((int)c).ToString("x4")
         : "" + c;
+  }
+
+  /// <summary>Convinience method to do a verbose error logging.</summary>
+  static void ReportParseError(string configFile, string lineContent, int lineNum,
+                               string message = null) {
+    if (string.IsNullOrEmpty(message)) {
+      DebugEx.Error("Error parsing file {0}, line {1}. Cannot consume content:\n{2}",
+                    configFile, lineNum, lineContent);
+    } else {
+      DebugEx.Error("Error parsing file {0}, line {1}. {2} in:\n{3}",
+                    configFile, lineNum, message, lineContent);
+    }
   }
 }
 

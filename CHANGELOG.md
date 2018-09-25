@@ -1,5 +1,6 @@
 # 1.5 (pre-release):
 * [Fix #7] Empty one-liner node declaration absorbs all nodes downstream.
+* [Enhancement] Report an error if a config file acnnot be properly parsed.
 
 # 1.4 (July 9th, 2018):
 * [Change] Include language files in the installation package.
