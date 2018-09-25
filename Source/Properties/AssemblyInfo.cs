@@ -24,8 +24,8 @@ using System.Runtime.InteropServices;
 //
 // You can specify all the values or you can use the default the Revision and 
 // Build Numbers by using the '*' as shown below:
-[assembly: AssemblyVersion ("1.4.*")]
-[assembly: AssemblyInformationalVersion ("1.4 for KSP v1.4+")]
-[assembly: KSPAssembly("KSPDev_LocalizationTool", 1, 4)]
+[assembly: AssemblyVersion ("1.5.*")]
+[assembly: AssemblyInformationalVersion ("1.5 for KSP v1.4+")]
+[assembly: KSPAssembly("KSPDev_LocalizationTool", 1, 5)]
 [assembly: Guid ("6e60d558-479a-48fb-85e1-208ee07e9251")] 
 [assembly: AssemblyFlags (AssemblyNameFlags.PublicKey | AssemblyNameFlags.EnableJITcompileOptimizer)]
