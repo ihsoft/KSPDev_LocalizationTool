@@ -140,7 +140,6 @@ public sealed class PartConfigParser {
         comment = line.Substring(commentPos + 2).TrimStart();
         line = line.Substring(0, commentPos).TrimEnd();
         if (line.Length == 0) {
-          lines.RemoveAt(0);
           lineNum++;
           if (!skipLineComments) {
             node.AddValue("__commentField", comment);
