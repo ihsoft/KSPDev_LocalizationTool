@@ -205,10 +205,10 @@ static class ConfigStore {
         continue;
       }
 
-      // Here it has to be a subnode. Check the otehr conditions it.
+      // At this point we know it's a subnode.
       string nodeName = null;
       if (nodeSameLineDeclRe.IsMatch(line)) {
-        // The node declaration starts on the same line. The can be more data in the same line!
+        // The node declaration starts on the same line. There can be more data in the same line!
         var sameLineMatch = nodeSameLineDeclRe.Match(line);
         nodeName = sameLineMatch.Groups[1].Value;
         lineLeftOff = sameLineMatch.Groups[2].Value;
