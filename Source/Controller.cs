@@ -177,16 +177,15 @@ class Controller : MonoBehaviour, IHasGUI {
   /// <summary>A list of actions to apply at the end of the GUI frame.</summary>
   static readonly GuiActionsList guiActions = new GuiActionsList();
 
-  #region Window intermediate properties
+  #region Local fields
   static Vector2 windowSize = new Vector2(430, 0);
   static Rect windowRect;
-  #endregion
-
   List<ScannedRecord> targets;
   Vector2 partsScrollPos;
   string lastCachedLookupPrefix;
   Event toggleConsoleKeyEvent;
   PopupDialog currentDialog;
+  #endregion
 
   #region MonoBehaviour overrides 
   /// <summary>Only loads session settings.</summary>
@@ -319,7 +318,7 @@ class Controller : MonoBehaviour, IHasGUI {
 
   /// <summary>Saves the strings for the selected entities into a new file.</summary>
   /// <param name="parts">The parts to export the strings from.</param>
-  /// <param name="assemblies">The mod assemblies to export teh strinsg from.</param>
+  /// <param name="assemblies">The mod assemblies to export the strinsg from.</param>
   void GuiActionExportStrings(IEnumerable<PartsRecord> parts,
                               IEnumerable<AssemblyRecord> assemblies) {
     var partsLocs = parts
@@ -490,6 +489,8 @@ class Controller : MonoBehaviour, IHasGUI {
         DebugEx.Error("Cannot load config file for part {0}: {1}", part, part.configFileFullName);
         continue;
       }
+
+      // Make the default localizable placeholders for the known part fields.
       var partNode = config.GetNode("PART");
       foreach (var fieldName in Extractor.localizablePartFields) {
         var field = partNode.values.Cast<ConfigNode.Value>()
