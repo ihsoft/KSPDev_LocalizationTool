@@ -1,0 +1,7 @@
+--user=ihsoft
+--repo=KSPDev_LocalizationTool
+--token=<<secret>>
+--changelog=../CHANGELOG.md
+--as_draft
+--title=LocalizationTool v{tag}
+--archive=../KSPDev_LocalizationTool_v1.5.zip
