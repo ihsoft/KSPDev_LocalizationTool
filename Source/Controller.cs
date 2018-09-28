@@ -187,6 +187,26 @@ class Controller : MonoBehaviour, IHasGUI {
   PopupDialog currentDialog;
   #endregion
 
+  #region Default locale
+  int defLocaleVersion = -1;
+  Dictionary<string, string> defaultLocaleLookup {
+    get {
+      if (defLocaleVersion != LocalizableMessage.systemLocVersion) {
+        defLocaleVersion = LocalizableMessage.systemLocVersion;
+        _defaultLocaleLookup = GameDatabase.Instance.GetConfigs("Localization")
+            .SelectMany(n => n.config.nodes.Cast<ConfigNode>())
+            .Where(x => x.name == "en-us")
+            .SelectMany(v => v.values.Cast<ConfigNode.Value>())
+            .ToDictionary(r => r.name, r => r.value);
+        DebugEx.Warning(
+            "Default locale strings reloaded: {0} entries updated.", defaultLocaleLookup.Count);
+      }
+      return _defaultLocaleLookup;
+    }
+  }
+  Dictionary<string, string> _defaultLocaleLookup;
+  #endregion
+
   #region MonoBehaviour overrides 
   /// <summary>Only loads session settings.</summary>
   void Awake() {
@@ -507,6 +527,9 @@ class Controller : MonoBehaviour, IHasGUI {
         field.value = locTag;
       }
 
+      // Expand the localized placeholders to the default syntax format.
+      ExpandLocalizedValues(config);
+
       var tgtPath = exportPath + part.name.Replace(".", "_") + ".cfg";
       DebugEx.Warning("Saving patched part config into: {0}", tgtPath);
       ConfigStore.SaveConfigWithComments(config, tgtPath);
@@ -534,6 +557,34 @@ class Controller : MonoBehaviour, IHasGUI {
               currentDialog = null;
             })),
         false, null);
+  }
+
+  /// <summary>Gets tag localziation in the game's default locale (en-us).</summary>
+  /// <param name="locTag">The tag to localize.</param>
+  /// <returns>The value or <c>null</c> if no <i>en-us</i> localziation found.</returns>
+  string GetDefaultLocalization(string locTag) {
+    string res;
+    return defaultLocaleLookup.TryGetValue(locTag, out res)
+        ? res
+        : "CANNOT FIND TAG IN EN-US LOCALE!";
+  }
+
+  /// <summary>
+  /// Recursively goes thru the node fields and adds a stock-default comment for the localizaed
+  /// field values.
+  /// </summary>
+  /// <param name="node">The parent node to start from.</param>
+  void ExpandLocalizedValues(ConfigNode node) {
+    foreach (var field in node.values.Cast<ConfigNode.Value>()) {
+      if (field.value.StartsWith("#", StringComparison.Ordinal)
+          && string.IsNullOrEmpty(field.comment)) {
+        // Make a default representation by adding En-US strings as a comment.
+        field.comment = field.value + " = " + GetDefaultLocalization(field.value);
+      }
+    }
+    foreach (var subnode in node.nodes.Cast<ConfigNode>()) {
+      ExpandLocalizedValues(subnode);
+    }
   }
 }
 
