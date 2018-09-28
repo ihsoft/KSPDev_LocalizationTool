@@ -1,6 +1,7 @@
-# 1.5 (pre-release):
+# 1.5 (September 27th, 2018):
 * [Fix #7] Empty one-liner node declaration absorbs all nodes downstream.
-* [Enhancement] Report an error if a config file acnnot be properly parsed.
+* [Enhancement #9] Expand localization tags to the default syntax on patched export.
+* [Enhancement] Report an error if a config file cannot be properly parsed.
 
 # 1.4 (July 9th, 2018):
 * [Change] Include language files in the installation package.
