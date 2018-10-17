@@ -1,3 +1,6 @@
+# 1.6 (October 16th, 2018):
+* [Change] KSP 1.5 compatibility.
+
 # 1.5 (September 27th, 2018):
 * [Fix #7] Empty one-liner node declaration absorbs all nodes downstream.
 * [Enhancement #9] Expand localization tags to the default syntax on patched export.
