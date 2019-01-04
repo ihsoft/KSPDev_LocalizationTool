@@ -40,7 +40,7 @@ public sealed class PartConfigParser {
   /// }
   /// </code>
   /// </remarks>
-  readonly Regex NodeMultiLinePrefixDeclRe = new Regex(@"^\s*(\S+)\s*$");
+  readonly static Regex NodeMultiLinePrefixDeclRe = new Regex(@"^\s*(\S+)\s*$");
 
   /// <summary>Parses a beginning subnode declration that starts on the same line.</summary>
   /// <remarks>
@@ -57,7 +57,7 @@ public sealed class PartConfigParser {
   /// MODULE { foo = bar }
   /// </code>
   /// </remarks>
-  readonly Regex NodeSameLineDeclRe = new Regex(@"^\s*(\S+)\s*{\s*(.*)$");
+  readonly static Regex NodeSameLineDeclRe = new Regex(@"^\s*(\S+)\s*{\s*(.*)$");
 
   /// <summary>Parses a simple key/value pair.</summary>
   /// <remarks>
@@ -72,7 +72,7 @@ public sealed class PartConfigParser {
   /// foo = {} bar = {}
   /// </code>
   /// </remarks>
-  readonly Regex KeyValueLineDeclRe = new Regex(@"^\s*(\S+)\s*=\s*(.*?)\s*(}.*)?$");
+  readonly static Regex KeyValueLineDeclRe = new Regex(@"^\s*(\S+)\s*=\s*(.*?)\s*(}.*)?$");
 
   /// <summary>Creates a parser with the desired options.</summary>
   /// <param name="localizeValues">
