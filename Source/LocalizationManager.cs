@@ -178,6 +178,30 @@ static class LocalizationManager {
     }
   }
 
+  /// <summary>Checks if the text is a possible localization tag.</summary>
+  /// <param name="txt">
+  /// The text to check for the tag candidate. It can be empty or <c>null</c>.
+  /// </param>
+  /// <param name="firstWordOnly">
+  /// Tells if only the first word of teh text should be checked.
+  /// </param>
+  /// <returns><c>true</c> if the text or its first word looks like a localization tag.</returns>
+  public static bool IsLocalziationTag(string txt, bool firstWordOnly = false) {
+    if (string.IsNullOrEmpty(txt)) {
+      return false;
+    }
+    if (firstWordOnly) {
+      var matches = Regex.Match(txt, @"^.*(\w){1}");
+      if (!matches.Success) {
+        return false;
+      }
+      txt = matches.Groups[1].Value;
+    }
+    return txt.StartsWith("#", StringComparison.Ordinal)
+        && !Regex.IsMatch(txt, @"^#[0-9a-fA-F]{6}$")
+        && !Regex.IsMatch(txt, @"^#[0-9a-fA-F]{3}$");
+  }
+
   /// <summary>Merges localizable values from one config node to another.</summary>
   /// <remarks>
   /// The values in the nodes must be in the same order. The <paramref name="toNode"/> is allowed
@@ -193,8 +217,7 @@ static class LocalizationManager {
         DebugEx.Error("Cannot merge config nodes.\nTO:\n{0}\nFROM:\n{1}", toNode, fromNode);
         return;
       }
-      if (fromValue.comment != null
-          && fromValue.comment.StartsWith("#", StringComparison.Ordinal)) {
+      if (IsLocalziationTag(fromValue.comment, firstWordOnly: true)) {
         toValue.value = fromValue.value;
         toValue.comment = fromValue.comment;
       }

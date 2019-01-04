@@ -1,3 +1,6 @@
+# 1.8 (pr-release):
+* [Enhancement #12] Properly handle color values.
+
 # 1.7 (December 24th, 2018):
 * [Change] KSP 1.6 compatibility.
 

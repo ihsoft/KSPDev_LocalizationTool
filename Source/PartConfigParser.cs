@@ -9,6 +9,8 @@ using System.IO;
 using System.Linq;
 using System.Text.RegularExpressions;
 
+namespace KSPDev.LocalizationTool {
+
 /// <summary>Parser for the part configs with comments and localization support.</summary>
 /// <remarks>
 /// <para>
@@ -154,9 +156,9 @@ public sealed class PartConfigParser {
       if (keyValueMatch.Success) {
         // Localize the value if it starts from "#". There can be false positives.
         var value = keyValueMatch.Groups[2].Value;
-        if (localizeValues && value.StartsWith("#", StringComparison.Ordinal)) {
+        if (localizeValues && LocalizationManager.IsLocalziationTag(value)) {
           var locValue = Localizer.Format(value);
-          if (comment == null || !comment.StartsWith("#", StringComparison.Ordinal)) {
+          if (!LocalizationManager.IsLocalziationTag(comment, firstWordOnly: true)) {
             // Simulate the localized comment if one is missing. It will be used when updating
             // parts.
             comment = value + " = " + locValue;
@@ -230,3 +232,5 @@ public sealed class PartConfigParser {
   }
   #endregion
 }
+
+}  // namespace

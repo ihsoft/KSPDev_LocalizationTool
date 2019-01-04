@@ -519,7 +519,7 @@ class Controller : MonoBehaviour, IHasGUI {
           DebugEx.Warning("Field '{0}' is not found in the part {1} config", fieldName, part);
           continue;
         }
-        if (field.value.StartsWith("#", StringComparison.Ordinal)) {
+        if (LocalizationManager.IsLocalziationTag(field.value)) {
           continue;  // It's already localized.
         }
         var locTag = Extractor.MakePartFieldLocalizationTag(part.name, fieldName);
@@ -576,7 +576,7 @@ class Controller : MonoBehaviour, IHasGUI {
   /// <param name="node">The parent node to start from.</param>
   void ExpandLocalizedValues(ConfigNode node) {
     foreach (var field in node.values.Cast<ConfigNode.Value>()) {
-      if (field.value.StartsWith("#", StringComparison.Ordinal)
+      if (LocalizationManager.IsLocalziationTag(field.value)
           && string.IsNullOrEmpty(field.comment)) {
         // Make a default representation by adding En-US strings as a comment.
         field.comment = field.value + " = " + GetDefaultLocalization(field.value);

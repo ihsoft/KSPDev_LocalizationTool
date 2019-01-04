@@ -45,8 +45,7 @@ static class Extractor {
       config.values.Remove(field);  // Don't handle it down the stream.
       string locTag = null;
       string locDefaultValue = null;
-      if (!string.IsNullOrEmpty(field.comment)
-          && field.comment.StartsWith("#", StringComparison.Ordinal)) {
+      if (LocalizationManager.IsLocalziationTag(field.comment, firstWordOnly: true)) {
         var match = Regex.Match(field.comment, @"^(#[a-zA-Z0-9_-]+)\s*=\s*(.+?)$");
         if (match.Success) {
           locTag = match.Groups[1].Value;
@@ -307,7 +306,7 @@ static class Extractor {
     }
     var description = ReflectionHelper.GetReflectedString(value, "description");
     var locExample = ReflectionHelper.GetReflectedString(value, "example");
-    if (!msgTag.StartsWith("#", StringComparison.Ordinal)) {
+    if (!LocalizationManager.IsLocalziationTag(msgTag)) {
       msgTag = MakeTypeMemberLocalizationTag(info);
       DebugEx.Warning("Auto generate a tag {0}", msgTag);
     }
