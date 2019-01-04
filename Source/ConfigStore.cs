@@ -45,6 +45,7 @@ static class ConfigStore {
       
       // Report duplicated tags if any.
       var duplicates = items
+          .Where(x => !Controller.skipTags.Any(x.locTag.StartsWith))
           .GroupBy(x => x.locTag)
           .Select(x => new { tag = x.Key, count = x.Count() })
           .Where(x => x.count > 1);
@@ -55,6 +56,7 @@ static class ConfigStore {
 
       file.Write("Localization\n{\n\t" + lang + "\n\t{\n");
       var byGroupKey = items
+          .Where(x => !Controller.skipTags.Any(x.locTag.StartsWith))
           .OrderBy(x => x.groupKey)
           .ThenBy(x => x.subgroupKey)
           .ThenBy(x => string.IsNullOrEmpty(x.sortKey) ? "\0xff" : x.sortKey)

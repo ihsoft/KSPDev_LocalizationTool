@@ -157,6 +157,9 @@ class Controller : MonoBehaviour, IHasGUI {
 
   [PersistentField("Export/partFieldsSorting")]
   internal static string partFieldsSorting = "title,manufacturer,description,tags";
+
+  [PersistentField("Export/skipTags", isCollection = true)]
+  internal static HashSet<string> skipTags = new HashSet<string>();
   #endregion
 
   #region Session settings

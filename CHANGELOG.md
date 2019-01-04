@@ -1,5 +1,6 @@
 # 1.8 (pr-release):
 * [Enhancement #12] Properly handle color values.
+* [Enhancement #13] Exclude the stock localization tags from the exported files.
 
 # 1.7 (December 24th, 2018):
 * [Change] KSP 1.6 compatibility.
