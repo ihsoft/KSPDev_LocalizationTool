@@ -101,6 +101,18 @@ sealed class Controller : MonoBehaviour, IHasGUI {
   static readonly Message CurrentLanguageFieldCaptionTxt = new Message(
       "#locTool_00019",
       "Current language:");
+
+  static readonly Message<string, int> PartsRecordTxt = new Message<string, int>(
+      "#locTool_00020",
+      "<<1>> (<<2>> parts)");
+  
+  static readonly Message<string, string, int> AssemblyRecordTxt = new Message<string, string, int>(
+      "#locTool_00021",
+      "<<1>>, v<<2>> (<<3>> modules)");
+
+  static readonly Message<string, string, int> ConfigRecordTxt = new Message<string, string, int>(
+      "#locTool_00022",
+      "<<1>>, lang=<<2>> (<<3>> strings)");
   #endregion
 
   #region GUI scrollbox records
@@ -127,7 +139,7 @@ sealed class Controller : MonoBehaviour, IHasGUI {
 
     /// <inheritdoc/>
     public override string ToString() {
-      return string.Format("{0} ({1} parts)", urlPrefix, parts.Count);
+      return PartsRecordTxt.Format(urlPrefix, parts.Count);
     }
   }
 
@@ -139,9 +151,9 @@ sealed class Controller : MonoBehaviour, IHasGUI {
 
     /// <inheritdoc/>
     public override string ToString() {
-      return string.Format("{0}, v{1} ({2} modules)",
-                           KspPaths.MakeRelativePathToGameData(assembly.Location),
-                           assembly.GetName().Version, types.Count);
+      return AssemblyRecordTxt.Format(
+          KspPaths.MakeRelativePathToGameData(assembly.Location),
+          assembly.GetName().Version.ToString(), types.Count);
     }
   }
 
@@ -154,8 +166,7 @@ sealed class Controller : MonoBehaviour, IHasGUI {
 
     /// <inheritdoc/>
     public override string ToString() {
-      return string.Format(
-          "{0}, lang={1} ({2} strings)",
+      return ConfigRecordTxt.Format(
           KspPaths.MakeRelativePathToGameData(url), lang, node.GetValues().Length);
     }
   }
