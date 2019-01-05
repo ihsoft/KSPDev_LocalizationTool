@@ -97,6 +97,10 @@ sealed class Controller : MonoBehaviour, IHasGUI {
   static readonly Message WaitDialogText = new Message(
       "#locTool_00018",
       "It may take a while. Please, be patient...");
+
+  static readonly Message CurrentLanguageFieldCaptionTxt = new Message(
+      "#locTool_00019",
+      "Current language:");
   #endregion
 
   #region GUI scrollbox records
@@ -356,7 +360,7 @@ sealed class Controller : MonoBehaviour, IHasGUI {
     }
 
     using (new GUILayout.HorizontalScope(GUI.skin.box)) {
-      GUILayout.Label("Current language:");
+      GUILayout.Label(CurrentLanguageFieldCaptionTxt);
       GUILayout.FlexibleSpace();
       selectedLanguageControl.RenderControl(
           guiActions, GUIStyle.none, new[] {GUILayout.Width(100)});
