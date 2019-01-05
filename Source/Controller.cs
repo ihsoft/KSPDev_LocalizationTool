@@ -197,6 +197,8 @@ sealed class Controller : MonoBehaviour, IHasGUI {
   string lastCachedLookupPrefix;
   Event toggleConsoleKeyEvent;
   const string ModalDialogId = "LocToolModalDialog";
+  string selectedLanguage;
+  HermeticGUIControlText selectedLanguageControl;
   #endregion
 
   #region Default locale
@@ -227,6 +229,13 @@ sealed class Controller : MonoBehaviour, IHasGUI {
         typeof(Controller), this, group: StdPersistentGroups.SessionGroup);
     toggleConsoleKeyEvent = Event.KeyboardEvent(toggleConsoleKey);
     windowRect = new Rect(windowPos, windowSize);
+
+    var langField = typeof(Controller).GetField(
+        "selectedLanguage", BindingFlags.NonPublic | BindingFlags.Instance);
+    selectedLanguageControl = new HermeticGUIControlText(
+        this, langField, useOwnLayout: true,
+        onAfterUpdate: () => StartCoroutine(ExecuteLongAction(GuiActionSetLanguage)));
+    selectedLanguage = Localizer.CurrentLanguage;
   }
 
   /// <summary>Only stores session settings.</summary>
@@ -344,6 +353,13 @@ sealed class Controller : MonoBehaviour, IHasGUI {
     // Parts DB update controls.
     if (GUILayout.Button(UpdateAllPartsTxt)) {
       StartCoroutine(ExecuteLongAction(GuiActionUpdateAllParts));
+    }
+
+    using (new GUILayout.HorizontalScope(GUI.skin.box)) {
+      GUILayout.Label("Current language:");
+      GUILayout.FlexibleSpace();
+      selectedLanguageControl.RenderControl(
+          guiActions, GUIStyle.none, new[] {GUILayout.Width(100)});
     }
 
     GUI.DragWindow();
@@ -552,6 +568,16 @@ sealed class Controller : MonoBehaviour, IHasGUI {
     ShowCompletionDialog(
         ConfigSavedDlgTitle,
         ConfigsSavedInFolderTxt.Format(exportParts.Count(), exportPath));
+  }
+
+  /// <summary>Changes the game's language and refreshes whatever possible.</summary>
+  /// <remarks>The change is not persistent.</remarks>
+  void GuiActionSetLanguage() {
+    var oldLang = Localizer.CurrentLanguage;
+    Localizer.SwitchToLanguage(selectedLanguage);
+    GuiActionUpdateTargets(lookupPrefix);
+    GuiActionUpdateAllParts();
+    DebugEx.Warning("Changed language: {0} => {1}", oldLang, Localizer.CurrentLanguage);
   }
 
   /// <summary>Asyncronously calls the action and presents a standby dialog.</summary>

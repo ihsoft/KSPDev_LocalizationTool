@@ -2,6 +2,7 @@
 * [Enhancement] Add standby dialog for the action that can take much time to complete.
 * [Enhancement #12] Properly handle color values.
 * [Enhancement #13] Exclude the stock localization tags from the exported files.
+* [Enhancement #14] Add ability to switch the current game language in runtime.
 
 # 1.7 (December 24th, 2018):
 * [Change] KSP 1.6 compatibility.
