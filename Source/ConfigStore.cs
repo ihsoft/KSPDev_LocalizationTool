@@ -240,7 +240,7 @@ static class ConfigStore {
       value = value.Substring(0, value.Length - 1) + EscapeChar(value[value.Length - 1]);
     }
     // Also, escape the linefeed character since it breaks the formatting.
-    return value.Replace("\n", "\\n");
+    return value.Replace("\n", "\\n").Replace("\t", "\\t");
   }
 
   /// <summary>Escapes a whitespace character.</summary>
