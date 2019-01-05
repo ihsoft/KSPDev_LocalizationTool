@@ -463,10 +463,10 @@ sealed class Controller : MonoBehaviour, IHasGUI {
   /// <param name="parts">The parts to update the string in.</param>
   void GuiActionRefreshStrings(IEnumerable<ConfigRecord> configs,
                                IEnumerable<PartsRecord> parts) {
-    DebugEx.Warning("Update the seelcted part prefabs and strings due to the settings change");
+    DebugEx.Warning("Update the selected part prefabs and strings due to the settings change");
     _defaultLocaleLookup = null;
 
-    // Updatate game's database with a fresh content from the disk.
+    // Updata the game's database with a fresh content from disk.
     configs.ToList().ForEach(
         x => LocalizationManager.UpdateLocalizationContent(x.filePath, x.node));
 
@@ -606,7 +606,7 @@ sealed class Controller : MonoBehaviour, IHasGUI {
   }
 
   /// <summary>
-  /// Recursively goes thru the node fields and adds a stock-default comment for the localizaed
+  /// Recursively goes thru the node fields and adds a stock-default comment for the localized
   /// field values.
   /// </summary>
   /// <param name="node">The parent node to start from.</param>
