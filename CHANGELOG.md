@@ -1,4 +1,5 @@
 # 1.8 (pr-release):
+* [Enhancement] Add standby dialog for the action that can take much time to complete.
 * [Enhancement #12] Properly handle color values.
 * [Enhancement #13] Exclude the stock localization tags from the exported files.
 

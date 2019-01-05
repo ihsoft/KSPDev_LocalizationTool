@@ -9,6 +9,7 @@ using KSPDev.GUIUtils;
 using KSPDev.LogUtils;
 using System;
 using System.IO;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
@@ -88,6 +89,14 @@ class Controller : MonoBehaviour, IHasGUI {
   static readonly Message<int, string> ConfigsSavedInFolderTxt = new Message<int, string>(
       "#locTool_00016",
       "<<1>> part configs saved into folder:\n<<2>>");
+
+  static readonly Message WaitDialogTitle = new Message(
+      "#locTool_00017",
+      "Action in progress");
+
+  static readonly Message WaitDialogText = new Message(
+      "#locTool_00018",
+      "It may take a while. Please, be patient...");
   #endregion
 
   #region GUI scrollbox records
@@ -187,7 +196,7 @@ class Controller : MonoBehaviour, IHasGUI {
   Vector2 partsScrollPos;
   string lastCachedLookupPrefix;
   Event toggleConsoleKeyEvent;
-  PopupDialog currentDialog;
+  const string ModalDialogId = "LocToolModalDialog";
   #endregion
 
   #region Default locale
@@ -323,7 +332,8 @@ class Controller : MonoBehaviour, IHasGUI {
       var title = RefreshBtnTxt.Format(selectedConfigs.Count(),
                                        selectedParts.Sum(x => x.parts.Count));
       if (GUILayout.Button(title)) {
-        GuiActionRefreshStrings(selectedConfigs, selectedParts);
+        StartCoroutine(ExecuteLongAction(
+            () => GuiActionRefreshStrings(selectedConfigs, selectedParts)));
       }
     } else {
       GUI.enabled = false;
@@ -333,7 +343,7 @@ class Controller : MonoBehaviour, IHasGUI {
 
     // Parts DB update controls.
     if (GUILayout.Button(UpdateAllPartsTxt)) {
-      GuiActionUpdateAllParts();
+      StartCoroutine(ExecuteLongAction(GuiActionUpdateAllParts));
     }
 
     GUI.DragWindow();
@@ -542,24 +552,24 @@ class Controller : MonoBehaviour, IHasGUI {
         ConfigsSavedInFolderTxt.Format(exportParts.Count(), exportPath));
   }
 
+  /// <summary>Asyncronously calls the action and presents a standby dialog.</summary>
+  /// <remarks>Use it when a lengthly blocking action needs to be executed.</remarks>
+  /// <param name="fn">The action to execute.</param>
+  /// <returns>The iterator to pass to <c>StartCoroutine</c>.</returns>
+  IEnumerator ExecuteLongAction(Action fn) {
+    var dlg = PopupDialog.SpawnPopupDialog(
+        new MultiOptionDialog(ModalDialogId, WaitDialogText, WaitDialogTitle, skin: null),
+        persistAcrossScenes: false, skin: null);
+    yield return null;
+    fn();
+    yield return null;
+    dlg.Dismiss();
+  }
+
   /// <summary>Creates a simple modal dialog.</summary>
   /// <param name="title">The title of the dialog.</param>
   /// <param name="msg">The string to present in the dialog.</param>
   void ShowCompletionDialog(string title, string msg) {
-    if (currentDialog != null) {
-      currentDialog.Dismiss();
-    }
-    currentDialog = PopupDialog.SpawnPopupDialog(
-        new MultiOptionDialog(
-            "StringsExportedDlg",
-            msg,
-            title,
-            null,
-            new DialogGUIButton(CloseDialogBtnTxt, () => {
-              currentDialog.Dismiss();
-              currentDialog = null;
-            })),
-        false, null);
   }
 
   /// <summary>Gets tag localziation in the game's default locale (en-us).</summary>
@@ -570,6 +580,11 @@ class Controller : MonoBehaviour, IHasGUI {
     return defaultLocaleLookup.TryGetValue(locTag, out res)
         ? res
         : "CANNOT FIND TAG IN EN-US LOCALE!";
+    PopupDialog dlg = null;
+    dlg = PopupDialog.SpawnPopupDialog(
+        new MultiOptionDialog(ModalDialogId, msg, title, null,
+                              new DialogGUIButton(CloseDialogBtnTxt, () => dlg.Dismiss())),
+        persistAcrossScenes: false, skin: null);
   }
 
   /// <summary>
