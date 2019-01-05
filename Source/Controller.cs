@@ -448,6 +448,7 @@ sealed class Controller : MonoBehaviour, IHasGUI {
   void GuiActionRefreshStrings(IEnumerable<ConfigRecord> configs,
                                IEnumerable<PartsRecord> parts) {
     DebugEx.Warning("Update the seelcted part prefabs and strings due to the settings change");
+    _defaultLocaleLookup = null;
 
     // Updatate game's database with a fresh content from the disk.
     configs.ToList().ForEach(
@@ -481,6 +482,7 @@ sealed class Controller : MonoBehaviour, IHasGUI {
   /// <summary>Triggers the part prefabs update.</summary>
   void GuiActionUpdateAllParts() {
     DebugEx.Warning("Update all the part prefabs and strings due to the settings change");
+    _defaultLocaleLookup = null;
 
     // Reload all the localization files.
     GameDatabase.Instance.GetConfigs("Localization")
