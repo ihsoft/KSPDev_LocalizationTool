@@ -572,16 +572,6 @@ sealed class Controller : MonoBehaviour, IHasGUI {
   /// <param name="title">The title of the dialog.</param>
   /// <param name="msg">The string to present in the dialog.</param>
   void ShowCompletionDialog(string title, string msg) {
-  }
-
-  /// <summary>Gets tag localziation in the game's default locale (en-us).</summary>
-  /// <param name="locTag">The tag to localize.</param>
-  /// <returns>The value or <c>null</c> if no <i>en-us</i> localziation found.</returns>
-  string GetDefaultLocalization(string locTag) {
-    string res;
-    return defaultLocaleLookup.TryGetValue(locTag, out res)
-        ? res
-        : "CANNOT FIND TAG IN EN-US LOCALE!";
     PopupDialog dlg = null;
     dlg = PopupDialog.SpawnPopupDialog(
         new MultiOptionDialog(ModalDialogId, msg, title, null,
@@ -598,8 +588,12 @@ sealed class Controller : MonoBehaviour, IHasGUI {
     foreach (var field in node.values.Cast<ConfigNode.Value>()) {
       if (LocalizationManager.IsLocalziationTag(field.value)
           && string.IsNullOrEmpty(field.comment)) {
-        // Make a default representation by adding En-US strings as a comment.
-        field.comment = field.value + " = " + GetDefaultLocalization(field.value);
+        // Make a default representation by adding EN-US strings as a comment.
+        if (defaultLocaleLookup.Keys.Contains(field.value)) {
+          field.comment = field.value + " = " + defaultLocaleLookup[field.value];
+        } else {
+          field.comment = field.value + " is NOT found in EN-US locale!";
+        }
       }
     }
     foreach (var subnode in node.nodes.Cast<ConfigNode>()) {
