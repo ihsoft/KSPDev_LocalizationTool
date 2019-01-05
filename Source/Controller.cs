@@ -20,7 +20,7 @@ namespace KSPDev.LocalizationTool {
 [PersistentFieldsFileAttribute("KSPDev/LocalizationTool/PluginData/settings.cfg", "")]
 [PersistentFieldsFileAttribute("KSPDev/LocalizationTool/PluginData/session.cfg", "UI",
                                StdPersistentGroups.SessionGroup)]
-class Controller : MonoBehaviour, IHasGUI {
+sealed class Controller : MonoBehaviour, IHasGUI {
   #region Localizable UI strings
   static readonly Message<Version> MainWindowTitleTxt = new Message<Version>(
       "#locTool_00000",
@@ -607,11 +607,17 @@ class Controller : MonoBehaviour, IHasGUI {
 }
 
 [KSPAddon(KSPAddon.Startup.MainMenu, false /*once*/)]
-class ControllerLauncher1 : Controller {
+class ControllerLauncher1 : MonoBehaviour {
+  void Awake() {
+    gameObject.AddComponent<Controller>();
+  }
 }
 
 [KSPAddon(KSPAddon.Startup.FlightAndEditor, false /*once*/)]
-class ControllerLauncher2 : Controller {
+class ControllerLauncher2 : MonoBehaviour {
+  void Awake() {
+    gameObject.AddComponent<Controller>();
+  }
 }
 
 }  // namesapce
