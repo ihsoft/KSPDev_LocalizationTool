@@ -1,6 +1,7 @@
 # 1.8 (pr-release):
 * [Change] Add localizations to the missed strings in the mod.
 * [Enhancement] Add standby dialog for the action that can take much time to complete.
+* [Enhancement] Add RU localization.
 * [Enhancement #12] Properly handle color values.
 * [Enhancement #13] Exclude the stock localization tags from the exported files.
 * [Enhancement #14] Add ability to switch the current game language in runtime.
