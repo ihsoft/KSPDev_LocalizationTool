@@ -186,6 +186,11 @@ sealed class Controller : MonoBehaviour, IHasGUI {
   /// <summary>Tag prefixes that should be completely ignored by the tool.</summary>
   [PersistentField("Export/skipTags", isCollection = true)]
   internal static HashSet<string> skipTags = new HashSet<string>();
+
+  /// <summary>Tag prefixes that are allowed for multiple usage.</summary>
+  /// <remarks>They will be added as a separate group at the end of the lang file.</remarks>
+  [PersistentField("Export/globalTags", isCollection = true)]
+  internal static HashSet<string> globalPrefix = new HashSet<string>();
   #endregion
 
   #region Session settings

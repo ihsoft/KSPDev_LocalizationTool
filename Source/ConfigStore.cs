@@ -46,7 +46,9 @@ static class ConfigStore {
       
       // Report duplicated tags if any.
       var duplicates = items
-          .Where(x => !Controller.skipTags.Any(x.locTag.StartsWith))
+          .Where(x =>
+              !Controller.skipTags.Any(x.locTag.StartsWith)
+              && !Controller.globalPrefix.Any(x.locTag.StartsWith))
           .GroupBy(x => x.locTag)
           .Select(x => new { tag = x.Key, count = x.Count() })
           .Where(x => x.count > 1);
@@ -56,14 +58,17 @@ static class ConfigStore {
       }
 
       file.Write("Localization\n{\n\t" + lang + "\n\t{\n");
+
+      // Tags, acquired from parts and DLLs.
       var byGroupKey = items
-          .Where(x => !Controller.skipTags.Any(x.locTag.StartsWith))
+          .Where(x =>
+              !Controller.skipTags.Any(x.locTag.StartsWith)
+              && !Controller.globalPrefix.Any(x.locTag.StartsWith))
           .OrderBy(x => x.groupKey)
           .ThenBy(x => x.subgroupKey)
           .ThenBy(x => string.IsNullOrEmpty(x.sortKey) ? "\0xff" : x.sortKey)
           .ThenBy(x => x.locTag)
           .GroupBy(x => new { x.groupKey, x.subgroupKey });
-      
       foreach (var groupKeyItems in byGroupKey) {
         var groupText = !string.IsNullOrEmpty(groupKeyItems.Key.subgroupKey)
             ? groupKeyItems.Key.groupKey + ", " + groupKeyItems.Key.subgroupKey
@@ -89,6 +94,47 @@ static class ConfigStore {
           }
         }
       }
+
+      // Global tags. They can appear multiple times in DLL or part CFG.
+      // Only use description if it's not null.
+      var globalTags = items
+          .Where(x => Controller.globalPrefix.Any(x.locTag.StartsWith))
+          .OrderBy(x => x.locTag)
+          .ThenBy(x => x.fullFilePath)
+          .GroupBy(x => new { x.locTag });
+      file.WriteLine("\n\t\t// ********** Global strings\n");
+      foreach (var globalStringsGroup in globalTags) {
+        var bestItem = default(LocItem);
+        foreach (var item in globalStringsGroup) {
+          file.WriteLine("\t\t// Referenced from: " + item.fullFilePath);
+          if (item.locDescription != null && bestItem.locTag != "") {
+            bestItem = item;
+          }
+        }
+        if (bestItem.locTag == null) {
+          DebugEx.Warning("Global tag doesn't provide any description: tag={0}",
+                          globalStringsGroup.Key.locTag);
+          bestItem = globalStringsGroup.First();
+        }
+        if (!string.IsNullOrEmpty(bestItem.locDescription)) {
+          file.WriteLine(MakeMultilineComment(2, bestItem.locDescription, maxLineLength: 100 - 2*8));
+        }
+        if (!string.IsNullOrEmpty(bestItem.locExample)) {
+          file.WriteLine(MakeMultilineComment(2, "Example usage:"));
+          file.WriteLine(MakeMultilineComment(2, bestItem.locExample));
+        }
+        if (localizeValues) {
+          string localizedValue;
+          if (Localizer.TryGetStringByTag(bestItem.locTag, out localizedValue)) {
+            file.WriteLine(MakeConfigNodeLine(2, bestItem.locTag, localizedValue));
+          } else {
+            file.WriteLine(MakeConfigNodeLine(2, bestItem.locTag, bestItem.locDefaultValue));
+          }
+        } else {
+          file.WriteLine(MakeConfigNodeLine(2, bestItem.locTag, bestItem.locDefaultValue));
+        }
+      }
+
       file.Write("\t}\n}\n");
     }
   }
