@@ -1,4 +1,4 @@
-# 1.8 (January 4th, 2019):
+# 1.8 (March 25h, 2019):
 * [Change] Add localizations to the missed strings in the mod.
 * [Enhancement] Add standby dialog for the action that can take much time to complete.
 * [Enhancement] Add RU localization.
