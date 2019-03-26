@@ -179,9 +179,11 @@ sealed class Controller : MonoBehaviour, IHasGUI {
   [PersistentField("UI/scrollHeight")]
   static int scrollHeight = 150;
 
+  /// <summary>Order, in which the part sections should be sorted.</summary>
   [PersistentField("Export/partFieldsSorting")]
   internal static string partFieldsSorting = "title,manufacturer,description,tags";
 
+  /// <summary>Tag prefixes that should be completely ignored by the tool.</summary>
   [PersistentField("Export/skipTags", isCollection = true)]
   internal static HashSet<string> skipTags = new HashSet<string>();
   #endregion
