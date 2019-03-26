@@ -202,6 +202,13 @@ static class LocalizationManager {
         && !Regex.IsMatch(txt, @"^#[0-9a-fA-F]{3}$");
   }
 
+  /// <summary>Checks if localizatyin tag must be ignored in export.</summary>
+  /// <param name="txt">The tag text.</param>
+  /// <returns><c>true</c> if the tag must be skipped.</returns>
+  public static bool IsSkippedTag(string txt) {
+    return Controller.skipTags.Any(txt.StartsWith);
+  }
+
   /// <summary>Merges localizable values from one config node to another.</summary>
   /// <remarks>
   /// The values in the nodes must be in the same order. The <paramref name="toNode"/> is allowed

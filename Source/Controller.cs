@@ -540,7 +540,7 @@ sealed class Controller : MonoBehaviour, IHasGUI {
   }
 
   /// <summary>
-  /// Patches the part configs so that they refer the tags for the localizable fileds, and saves the
+  /// Patches the part configs so that they refer the tags for the localizable fields, and saves the
   /// modified fiels in the export location.
   /// </summary>
   /// <remarks></remarks>
@@ -565,12 +565,18 @@ sealed class Controller : MonoBehaviour, IHasGUI {
           DebugEx.Warning("Field '{0}' is not found in the part {1} config", fieldName, part);
           continue;
         }
-        if (LocalizationManager.IsLocalziationTag(field.value)) {
-          continue;  // It's already localized.
+        if (!LocalizationManager.IsLocalziationTag(field.value)) {
+          // Replace a non-localized value by a tag.
+          var locTag = Extractor.MakePartFieldLocalizationTag(part.name, fieldName);
+          field.comment = locTag + " = " + field.value;
+          field.value = locTag;
+        } else {
+          string locValue;
+          if (Localizer.TryGetStringByTag(field.value, out locValue)) {
+            // Update comment to the latest lang file.
+            field.comment = field.value + " = " + locValue;
+          }
         }
-        var locTag = Extractor.MakePartFieldLocalizationTag(part.name, fieldName);
-        field.comment = locTag + " = " + field.value;
-        field.value = locTag;
       }
 
       // Expand the localized placeholders to the default syntax format.
@@ -628,6 +634,7 @@ sealed class Controller : MonoBehaviour, IHasGUI {
   void ExpandLocalizedValues(ConfigNode node) {
     foreach (var field in node.values.Cast<ConfigNode.Value>()) {
       if (LocalizationManager.IsLocalziationTag(field.value)
+          && !LocalizationManager.IsSkippedTag(field.value)
           && string.IsNullOrEmpty(field.comment)) {
         // Make a default representation by adding EN-US strings as a comment.
         if (defaultLocaleLookup.Keys.Contains(field.value)) {
