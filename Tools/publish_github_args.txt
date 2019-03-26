@@ -4,4 +4,4 @@
 --changelog=../CHANGELOG.md
 --as_draft
 --title=LocalizationTool v{tag}
---archive=../KSPDev_LocalizationTool_v1.7.zip
+--archive=../KSPDev_LocalizationTool_v1.8.zip
