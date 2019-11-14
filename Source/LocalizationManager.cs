@@ -183,7 +183,7 @@ static class LocalizationManager {
   /// The text to check for the tag candidate. It can be empty or <c>null</c>.
   /// </param>
   /// <param name="firstWordOnly">
-  /// Tells if only the first word of teh text should be checked.
+  /// Tells if only the first word of the text should be checked.
   /// </param>
   /// <returns><c>true</c> if the text or its first word looks like a localization tag.</returns>
   public static bool IsLocalziationTag(string txt, bool firstWordOnly = false) {
