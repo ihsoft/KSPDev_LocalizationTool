@@ -43,11 +43,11 @@ static class LocalizationManager {
         .ForEach(targetNode.values.Add);
   }
 
-  /// <summary>Updates localizable strings in the part definiton.</summary>
+  /// <summary>Updates localizable strings in the part definition.</summary>
   /// <remarks>
   /// The methods reads the current content from the part's config on disk and applies values to the
-  /// localizable part fields. An up to date localization content must be loaded in the game for
-  /// this method to actually update the parts.
+  /// localizable part fields. The up to date localization strings must already be loaded in the
+  /// game before calling this method.
   /// </remarks>
   /// <param name="partInfo"></param>
   /// <seealso cref="UpdateLocalizationContent"/>
@@ -67,13 +67,13 @@ static class LocalizationManager {
     });
 
     // Update the prefab module info.
-    // This is a simplified algorythm of the part localization. It may not work for all the cases.
+    // This is a simplified algorithm of the part localization. It may not work for all the cases.
     var partModules = partInfo.partPrefab.Modules.GetModules<PartModule>()
         .Where(x => !string.IsNullOrEmpty(x.GetInfo().Trim()))
         .ToList();
     if (partModules.Count > partInfo.moduleInfos.Count) {
       // When modules are added to prefab after the database load, the count can mismatch.
-      // Those extra modules will be skipped during the refresh since they are not visible anywyas.
+      // Those extra modules will be skipped during the refresh since they are not visible anyway.
       DebugEx.Warning(
           "Part {0} has {1} UI visible modules, but there only {2} module infos",
           partInfo.name, partModules.Count, partInfo.moduleInfos.Count);
