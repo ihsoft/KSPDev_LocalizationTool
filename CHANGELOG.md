@@ -1,3 +1,6 @@
+# 1.9 (April 26h, 2020):
+* [Change] `KSP 1.8` compatibility. __WARNING__: the mod won't work with version lower than `KSP 1.8`!
+
 # 1.8 (March 25h, 2019):
 * [Change] Add localizations to the missed strings in the mod.
 * [Enhancement] Add standby dialog for the action that can take much time to complete.

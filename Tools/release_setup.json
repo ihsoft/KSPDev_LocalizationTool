@@ -14,8 +14,7 @@
     "Plugins" : [
       "{COMPILED_BINARY}",
       "{MINIAVC_VERSION_FILE}",
-      "/Binaries/*",
-      "-*.xml"
+      "/Binaries/*"
     ],
     "PluginData" : [
       "/settings.cfg"
