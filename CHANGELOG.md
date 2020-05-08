@@ -1,4 +1,5 @@
 # 1.10 (pre-release):
+* [Fix #16] Bad escaping in the loaclization makes the tool crashing.
 
 # 1.9 (April 26h, 2020):
 * [Change] `KSP 1.8` compatibility. __WARNING__: the mod won't work with version lower than `KSP 1.8`!

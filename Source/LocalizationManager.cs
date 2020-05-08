@@ -33,7 +33,7 @@ static class LocalizationManager {
         configFilename);
     // Update the existing and new tags. 
     newNode.values.Cast<ConfigNode.Value>().ToList()
-        .ForEach(value => Localizer.Tags[value.name] = Regex.Unescape(value.value));
+        .ForEach(value => Localizer.Tags[value.name] = SafeUnescape(value.value));
     // Drop the deleted tags.
     oldTags.Except(newTags).ToList()
         .ForEach(tag => Localizer.Tags.Remove(tag));
@@ -315,6 +315,18 @@ static class LocalizationManager {
         field.SetValue(strValue, module);
       }
     }
+  }
+
+  /// <summary>Unescapes the string even if it has escaping errors.</summary>
+  static string SafeUnescape(string srcValue) {
+    try {
+      return Regex.Unescape(srcValue);
+    } catch (Exception ex) {
+      DebugEx.Error(
+          "Cannot properly unescape value, falling back to a simple approach: err={0}, value={1}",
+          ex.Message, srcValue);
+    }
+    return srcValue.Replace("\\n", "\n").Replace("\\\"", "\"").Replace("\\t", "\t");;
   }
 }
 
