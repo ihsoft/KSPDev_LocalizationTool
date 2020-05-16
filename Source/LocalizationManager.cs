@@ -202,7 +202,7 @@ static class LocalizationManager {
         && !Regex.IsMatch(txt, @"^#[0-9a-fA-F]{3}$");
   }
 
-  /// <summary>Checks if localizatyin tag must be ignored in export.</summary>
+  /// <summary>Checks if localization tag must be ignored in export.</summary>
   /// <param name="txt">The tag text.</param>
   /// <returns><c>true</c> if the tag must be skipped.</returns>
   public static bool IsSkippedTag(string txt) {

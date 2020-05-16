@@ -132,7 +132,7 @@ sealed class Controller : MonoBehaviour, IHasGUI {
     }
   }
 
-  /// <summary>Item that represents mod's parts record.</summary>
+  /// <summary>Item that represents mod parts record.</summary>
   class PartsRecord : ScannedRecord {
     public List<AvailablePart> parts = new List<AvailablePart>();
     public string urlPrefix = "";
