@@ -323,7 +323,7 @@ static class Extractor {
   }
 
   /// <summary>
-  /// Extarcts localization information from a member attributed with a KSPDev loсalization
+  /// Extracts localization information from a member attributed with a KSPDev localisation
   /// attribute.
   /// </summary>
   /// <param name="info">The member to extract the attribute for.</param>
@@ -331,8 +331,8 @@ static class Extractor {
   /// <param name="sortKey">The sort key to apply to the item if it's found.</param>
   /// <param name="spec">The specialization string to pick the attribute.</param>
   /// <returns>
-  /// A localization item or <c>null</c> if no attrribute was found, or if the attribute is
-  /// explicilty specifying that there is no localization information for the member
+  /// A localization item or <c>null</c> if no attribute was found, or if the attribute is
+  /// explicitly specifying that there is no localization information for the member
   /// (tag = <c>null</c>).
   /// </returns>
   static LocItem? GetItemFromLocalizableObject(
@@ -409,4 +409,4 @@ static class Extractor {
   #endregion
 }
 
-}  // namesapce
+}  // namespace

@@ -32,7 +32,7 @@ static class ConfigStore {
   /// </param>
   /// <param name="filePath">The file path to write the data into.</param>
   /// <param name="localizeValues">
-  /// Tells if the original template or the localized values shold be saved.
+  /// Tells if the original template or the localized values should be saved.
   /// </param>
   public static void WriteLocItems(IEnumerable<LocItem> items, string lang, string filePath,
                                    bool localizeValues = true) {
@@ -147,7 +147,7 @@ static class ConfigStore {
   /// </param>
   /// <param name="skipLineComments">
   /// Tells to not emit the "__commentField" fields for the standalone comments. It doesn't affect
-  /// the in-line comments; they are always assigned to the related value or subnode.
+  /// the in-line comments; they are always assigned to the related value or sub-node.
   /// </param>
   /// <returns>A loaded config node.</returns>
   /// <seealso cref="PartConfigParser"/>
@@ -164,7 +164,7 @@ static class ConfigStore {
   /// <remarks>It's a counter part to the <see cref="LoadConfigWithComments"/> method.</remarks>
   /// <param name="node">The node with the comments to save.</param>
   /// <param name="path">
-  /// The path to save at. The missing directiones in the path will be created if missed.
+  /// The path to save at. The missing directions in the path will be created if missed.
   /// </param>
   public static void SaveConfigWithComments(ConfigNode node, string path) {
     var content = new StringBuilder();
@@ -279,7 +279,7 @@ static class ConfigStore {
   /// <param name="value">The value to escape.</param>
   /// <returns>The escaped value.</returns>
   static string EscapeValue(string value) {
-    // Turn the leading and the trailing spaces into the unicode codes. Othwerwise, they won't load.
+    // Turn the leading and the trailing spaces into the unicode codes. Otherwise, they won't load.
     if (value.Length > 0) {
       value = EscapeChar(value[0]) + value.Substring(1);
     }
@@ -300,4 +300,4 @@ static class ConfigStore {
   }
 }
 
-}  // namesapce
+}  // namespace

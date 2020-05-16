@@ -42,7 +42,7 @@ struct LocItem {
   /// <summary>Optional description of the item.</summary>
   /// <remarks>
   /// It can be different in every particular case. The general rule is that this field should
-  /// give a context which is absent otherwsie (e.g. via the tag name or via the default value). 
+  /// give a context which is absent otherwise (e.g. via the tag name or via the default value). 
   /// </remarks>
   public string locDescription;
 

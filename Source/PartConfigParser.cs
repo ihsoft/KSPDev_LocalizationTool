@@ -16,7 +16,7 @@ namespace KSPDev.LocalizationTool {
 /// <para>
 /// This parser does <i>not</i> use the stock code to parse a config file. This may result in
 /// differences on how the game and this parser see the config. Don't use this parser unless
-/// accessing to the comments and flexible control of the localziation is required.
+/// accessing to the comments and flexible control of the localization is required.
 /// </para>
 /// <para>
 /// The stock class can only save the comments to the config file, but not loading them back. This
@@ -28,7 +28,7 @@ public sealed class PartConfigParser {
   readonly bool localizeValues;
   readonly bool skipLineComments;
 
-  /// <summary>Parses a beginning of the multiline subnode declration.</summary>
+  /// <summary>Parses a beginning of the multiline subnode declaration.</summary>
   /// <remarks>
   /// <para>
   /// It detects the staring of the block and returns the key (subnode name) as <c>$1</c>:
@@ -42,7 +42,7 @@ public sealed class PartConfigParser {
   /// </remarks>
   readonly static Regex NodeMultiLinePrefixDeclRe = new Regex(@"^\s*(\S+)\s*$");
 
-  /// <summary>Parses a beginning subnode declration that starts on the same line.</summary>
+  /// <summary>Parses a beginning subnode declaration that starts on the same line.</summary>
   /// <remarks>
   /// <para>
   /// It detects the staring of the block and returns the key (subnode name) as <c>$1</c> and

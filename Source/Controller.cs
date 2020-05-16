@@ -389,7 +389,7 @@ sealed class Controller : MonoBehaviour, IHasGUI {
 
   /// <summary>Saves the strings for the selected entities into a new file.</summary>
   /// <param name="parts">The parts to export the strings from.</param>
-  /// <param name="assemblies">The mod assemblies to export the strinsg from.</param>
+  /// <param name="assemblies">The mod assemblies to export the strings from.</param>
   void GuiActionExportStrings(IEnumerable<PartsRecord> parts,
                               IEnumerable<AssemblyRecord> assemblies) {
     var partsLocs = parts
@@ -488,7 +488,7 @@ sealed class Controller : MonoBehaviour, IHasGUI {
     DebugEx.Warning("Update the selected part prefabs and strings due to the settings change");
     _defaultLocaleLookup = null;
 
-    // Updata the game's database with a fresh content from disk.
+    // Update the game's database with a fresh content from disk.
     configs.ToList().ForEach(
         x => LocalizationManager.UpdateLocalizationContent(x.filePath, x.node));
 
@@ -518,6 +518,7 @@ sealed class Controller : MonoBehaviour, IHasGUI {
   }
 
   /// <summary>Triggers the part prefabs update.</summary>
+  /// <remarks>This methods forces global language update.</remarks>
   void GuiActionUpdateAllParts() {
     DebugEx.Warning("Update all the part prefabs and strings due to the settings change");
     _defaultLocaleLookup = null;
@@ -528,7 +529,7 @@ sealed class Controller : MonoBehaviour, IHasGUI {
         .ToList()
         .ForEach(x => LocalizationManager.UpdateLocalizationContent(
             x.parent.fullPath, x.config.GetNodes(Localizer.CurrentLanguage).FirstOrDefault()));
-    
+
     PartLoader.LoadedPartsList
         .ForEach(LocalizationManager.LocalizePrefab);
     LocalizationManager.ReloadPartModuleStrings();
@@ -548,7 +549,7 @@ sealed class Controller : MonoBehaviour, IHasGUI {
 
   /// <summary>
   /// Patches the part configs so that they refer the tags for the localizable fields, and saves the
-  /// modified fiels in the export location.
+  /// modified fields in the export location.
   /// </summary>
   /// <remarks></remarks>
   /// <param name="parts">The parts to patch.</param>
@@ -608,8 +609,8 @@ sealed class Controller : MonoBehaviour, IHasGUI {
     DebugEx.Warning("Changed language: {0} => {1}", oldLang, Localizer.CurrentLanguage);
   }
 
-  /// <summary>Asyncronously calls the action and presents a standby dialog.</summary>
-  /// <remarks>Use it when a lengthly blocking action needs to be executed.</remarks>
+  /// <summary>Asynchronously calls the action and presents a standby dialog.</summary>
+  /// <remarks>Use it when a lengthy blocking action needs to be executed.</remarks>
   /// <param name="fn">The action to execute.</param>
   /// <returns>The iterator to pass to <c>StartCoroutine</c>.</returns>
   IEnumerator ExecuteLongAction(Action fn) {
@@ -671,4 +672,4 @@ class ControllerLauncher2 : MonoBehaviour {
   }
 }
 
-}  // namesapce
+}  // namespace

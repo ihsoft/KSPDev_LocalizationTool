@@ -153,7 +153,7 @@ static class LocalizationManager {
     }
   }
 
-  /// <summary>Updates the modules in all the current vessels or parts in the editor.</summary>
+  /// <summary>Updates the modules in all the current vessels or parts in the scene.</summary>
   public static void ReloadPartModuleStrings(HashSet<string> selectedParts = null) {
     // FLIGHT: Update the part modules in all the loaded vessels.
     if (HighLogic.LoadedSceneIsFlight) {
