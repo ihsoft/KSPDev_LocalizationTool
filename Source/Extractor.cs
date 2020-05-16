@@ -14,7 +14,7 @@ namespace KSPDev.LocalizationTool {
 
 static class Extractor {
   /// <summary>List of the part's fields that need localization.</summary>
-  public readonly static string[] localizablePartFields =
+  public static readonly string[] LocalizablePartFields =
       {"title", "manufacturer", "description", "tags"};
 
   /// <summary>Extracts the localization items from the part's config.</summary>
@@ -34,7 +34,7 @@ static class Extractor {
     }
 
     // Go thru the fields we know must be localized.
-    foreach (var fieldName in localizablePartFields) {
+    foreach (var fieldName in LocalizablePartFields) {
       var field = config.values.Cast<ConfigNode.Value>()
           .FirstOrDefault(x => x.name == fieldName);
       if (field == null) {

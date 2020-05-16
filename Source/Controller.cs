@@ -62,11 +62,11 @@ sealed class Controller : MonoBehaviour, IHasGUI {
       "#locTool_00009",
       "Show assemblies with no modules");
 
-  readonly static Message MakeSelectionsForPatchTxt = new Message(
+  static readonly Message MakeSelectionsForPatchTxt = new Message(
       "#locTool_00010",
       "<i>EXPORT PART CONFIGS: Select a parts folder</i>");
 
-  readonly static Message<int> PatchPartsBtnTxt = new Message<int>(
+  static readonly Message<int> PatchPartsBtnTxt = new Message<int>(
       "#locTool_00011",
       "Export <<1>> patched part configs");
 

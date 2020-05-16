@@ -51,7 +51,7 @@ static class LocalizationManager {
   /// </remarks>
   /// <param name="partInfo"></param>
   /// <seealso cref="UpdateLocalizationContent"/>
-  /// <seealso cref="Extractor.localizablePartFields"/>
+  /// <seealso cref="Extractor.LocalizablePartFields"/>
   public static void LocalizePartInfo(AvailablePart partInfo) {
     var newPartConfig = GetPartPrefabConfig(partInfo);
     if (newPartConfig == null) {
@@ -59,7 +59,7 @@ static class LocalizationManager {
     }
 
     DebugEx.Info("Update strings in part {0}", partInfo.partPrefab);
-    Extractor.localizablePartFields.ToList().ForEach(name => {
+    Extractor.LocalizablePartFields.ToList().ForEach(name => {
       var newValue = newPartConfig.GetValue(name);
       if (newValue != null) {
         ReflectionHelper.SetReflectedString(partInfo, name, newValue);
