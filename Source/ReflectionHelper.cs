@@ -3,7 +3,6 @@
 // This software is distributed under Public domain license.
 
 using System;
-using System.Reflection;
 
 namespace KSPDev.LocalizationTool {
 
