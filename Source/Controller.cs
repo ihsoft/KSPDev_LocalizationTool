@@ -413,7 +413,7 @@ sealed class Controller : MonoBehaviour, IHasGUI {
     Directory.CreateDirectory(Path.GetDirectoryName(filePath));
     ConfigStore.WriteLocItems(locItems, Localizer.CurrentLanguage, filePath);
     DebugEx.Warning("Strings are written into: {0}", filePath);
-    ShowCompletionDialog(StringsExportedDlgTitle, FileSavedTxt.Format(filePath));
+    ShowCompletionDialog(StringsExportedDlgTitle, FileSavedTxt.Format(filePath.Replace("\\", "/")));
   }
 
   /// <summary>Finds all the entities for the prefix, and populates the list.</summary>
