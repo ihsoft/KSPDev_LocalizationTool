@@ -3,8 +3,8 @@
 // This software is distributed under Public domain license.
 
 using KSP.Localization;
-using KSPDev.FSUtils;
 using KSPDev.ConfigUtils;
+using KSPDev.FSUtils;
 using KSPDev.GUIUtils;
 using KSPDev.LogUtils;
 using System;
@@ -15,6 +15,7 @@ using System.Linq;
 using System.Reflection;
 using UnityEngine;
 
+// ReSharper disable once CheckNamespace
 namespace KSPDev.LocalizationTool {
 
 [PersistentFieldsFileAttribute("KSPDev/LocalizationTool/PluginData/settings.cfg", "")]
@@ -119,7 +120,7 @@ sealed class Controller : MonoBehaviour, IHasGUI {
   /// <summary>Base class for the records that represent the extractor entities.</summary>
   abstract class ScannedRecord {
     public bool selected;
-    public virtual void GUIAddItem() {
+    public virtual void GuiAddItem() {
       selected = GUILayout.Toggle(selected, ToString());
     }
   }
@@ -127,7 +128,7 @@ sealed class Controller : MonoBehaviour, IHasGUI {
   /// <summary>Simple item to display info in the scroll box. It cannot be selected.</summary>
   class StubRecord : ScannedRecord {
     public string stubText;
-    public override void GUIAddItem() {
+    public override void GuiAddItem() {
       GUILayout.Label(stubText);
     }
   }
@@ -147,7 +148,6 @@ sealed class Controller : MonoBehaviour, IHasGUI {
   class AssemblyRecord : ScannedRecord {
     public Assembly assembly;
     public List<Type> types;
-    public string url;
 
     /// <inheritdoc/>
     public override string ToString() {
@@ -174,61 +174,72 @@ sealed class Controller : MonoBehaviour, IHasGUI {
 
   #region Mod's settings
   [PersistentField("UI/toggleConsoleKey")]
-  static string toggleConsoleKey = "&f8";
+  string _toggleConsoleKey = "&f8";
 
   [PersistentField("UI/scrollHeight")]
-  static int scrollHeight = 150;
+  // ReSharper disable once FieldCanBeMadeReadOnly.Local
+  // ReSharper disable once ConvertToConstant.Local
+  static int _scrollHeight = 150;
 
   /// <summary>Order, in which the part sections should be sorted.</summary>
   [PersistentField("Export/partFieldsSorting")]
+  // ReSharper disable once FieldCanBeMadeReadOnly.Global
+  // ReSharper disable once ConvertToConstant.Global
   internal static string partFieldsSorting = "title,manufacturer,description,tags";
 
   /// <summary>Tag prefixes that should be completely ignored by the tool.</summary>
   [PersistentField("Export/skipTags", isCollection = true)]
+  // ReSharper disable once CollectionNeverUpdated.Global
+  // ReSharper disable once FieldCanBeMadeReadOnly.Global
   internal static HashSet<string> skipTags = new HashSet<string>();
 
   /// <summary>Tag prefixes that are allowed for multiple usage.</summary>
   /// <remarks>They will be added as a separate group at the end of the lang file.</remarks>
   [PersistentField("Export/globalTags", isCollection = true)]
+  // ReSharper disable once CollectionNeverUpdated.Global
+  // ReSharper disable once FieldCanBeMadeReadOnly.Global
   internal static HashSet<string> globalPrefix = new HashSet<string>();
   #endregion
 
   #region Session settings
+  //FIXME: handle resolution change!
   [PersistentField("windowPos", group = StdPersistentGroups.SessionGroup)]
-  static Vector2 windowPos = new Vector2(0, 0);
+  static Vector2 _windowPos = new Vector2(0, 0);
 
   /// <summary>Specifies if debug console is visible.</summary>
   [PersistentField("isOpen", group = StdPersistentGroups.SessionGroup)]
-  static bool isUIVisible;
+  static bool _isUiVisible;
 
   [PersistentField("lookupPrefix", group = StdPersistentGroups.SessionGroup)]
-  string lookupPrefix = "";
+  string _lookupPrefix = "";
 
   [PersistentField("showNoModulesAssemblies", group = StdPersistentGroups.SessionGroup)]
-  bool allowNoModulesAssemblies;
+  bool _allowNoModulesAssemblies;
   #endregion
 
   /// <summary>A list of actions to apply at the end of the GUI frame.</summary>
-  static readonly GuiActionsList guiActions = new GuiActionsList();
+  // ReSharper disable once InconsistentNaming
+  static readonly GuiActionsList _guiActions = new GuiActionsList();
 
   #region Local fields
-  static Vector2 windowSize = new Vector2(430, 0);
-  static Rect windowRect;
-  List<ScannedRecord> targets;
-  Vector2 partsScrollPos;
-  string lastCachedLookupPrefix;
-  Event toggleConsoleKeyEvent;
+  // ReSharper disable once InconsistentNaming
+  static readonly Vector2 _windowSize = new Vector2(430, 0);
+  static Rect _windowRect;
+  List<ScannedRecord> _targets;
+  Vector2 _partsScrollPos;
+  string _lastCachedLookupPrefix;
+  Event _toggleConsoleKeyEvent;
   const string ModalDialogId = "LocToolModalDialog";
-  string selectedLanguage;
-  HermeticGUIControlText selectedLanguageControl;
+  string _selectedLanguage;
+  HermeticGUIControlText _selectedLanguageControl;
   #endregion
 
   #region Default locale
-  int defLocaleVersion = -1;
+  int _defLocaleVersion = -1;
   Dictionary<string, string> defaultLocaleLookup {
     get {
-      if (defLocaleVersion != LocalizableMessage.systemLocVersion) {
-        defLocaleVersion = LocalizableMessage.systemLocVersion;
+      if (_defLocaleVersion != LocalizableMessage.systemLocVersion) {
+        _defLocaleVersion = LocalizableMessage.systemLocVersion;
         _defaultLocaleLookup = GameDatabase.Instance.GetConfigs("Localization")
             .SelectMany(n => n.config.nodes.Cast<ConfigNode>())
             .Where(x => x.name == "en-us")
@@ -249,20 +260,21 @@ sealed class Controller : MonoBehaviour, IHasGUI {
     ConfigAccessor.ReadFieldsInType(typeof(Controller), null /* instance */);
     ConfigAccessor.ReadFieldsInType(
         typeof(Controller), this, group: StdPersistentGroups.SessionGroup);
-    toggleConsoleKeyEvent = Event.KeyboardEvent(toggleConsoleKey);
-    windowRect = new Rect(windowPos, windowSize);
+
+    _toggleConsoleKeyEvent = Event.KeyboardEvent(_toggleConsoleKey);
+    _windowRect = new Rect(_windowPos, _windowSize);
 
     var langField = typeof(Controller).GetField(
-        "selectedLanguage", BindingFlags.NonPublic | BindingFlags.Instance);
-    selectedLanguageControl = new HermeticGUIControlText(
+        nameof(_selectedLanguage), BindingFlags.NonPublic | BindingFlags.Instance);
+    _selectedLanguageControl = new HermeticGUIControlText(
         this, langField, useOwnLayout: true,
         onAfterUpdate: () => StartCoroutine(ExecuteLongAction(GuiActionSetLanguage)));
-    selectedLanguage = Localizer.CurrentLanguage;
+    _selectedLanguage = Localizer.CurrentLanguage;
   }
 
   /// <summary>Only stores session settings.</summary>
   void OnDestroy() {
-    windowPos = windowRect.position;
+    _windowPos = _windowRect.position;
     ConfigAccessor.WriteFieldsFromType(
         typeof(Controller), this, group: StdPersistentGroups.SessionGroup);
   }
@@ -271,72 +283,72 @@ sealed class Controller : MonoBehaviour, IHasGUI {
   #region IHasGUI implementation
   /// <inheritdoc/>
   public void OnGUI() {
-    if (Event.current.Equals(toggleConsoleKeyEvent)) {
+    if (Event.current.Equals(_toggleConsoleKeyEvent)) {
       Event.current.Use();
-      isUIVisible = !isUIVisible;
-      targets = null;
+      _isUiVisible = !_isUiVisible;
+      _targets = null;
     }
-    if (isUIVisible) {
-      if (targets == null) {
-        GuiActionUpdateTargets(lookupPrefix);
+    if (_isUiVisible) {
+      if (_targets == null) {
+        GuiActionUpdateTargets(_lookupPrefix);
       }
-      windowRect = GUILayout.Window(
-          GetInstanceID(), windowRect, MakeConsoleWindow,
+      _windowRect = GUILayout.Window(
+          GetInstanceID(), _windowRect, MakeConsoleWindow,
           MainWindowTitleTxt.Format(GetType().Assembly.GetName().Version));
     }
   }
   #endregion
 
   /// <summary>Shows a UI dialog.</summary>
-  /// <param name="windowID">The window ID. Unused.</param>
-  void MakeConsoleWindow(int windowID) {
-    guiActions.ExecutePendingGuiActions();
+  /// <param name="windowId">The window ID. Unused.</param>
+  void MakeConsoleWindow(int windowId) {
+    _guiActions.ExecutePendingGuiActions();
     // Search prefix controls.
     using (new GUILayout.HorizontalScope(GUI.skin.box)) {
       GUILayout.Label(UrlPrefixFieldCaptionTxt, GUILayout.ExpandWidth(false));
-      lookupPrefix = GUILayout.TextField(lookupPrefix, GUILayout.ExpandWidth(true)).TrimStart();
-      if (lookupPrefix != lastCachedLookupPrefix) {
-        lastCachedLookupPrefix = lookupPrefix;
-        guiActions.Add(() => GuiActionUpdateTargets(lookupPrefix));
+      _lookupPrefix = GUILayout.TextField(_lookupPrefix, GUILayout.ExpandWidth(true)).TrimStart();
+      if (_lookupPrefix != _lastCachedLookupPrefix) {
+        _lastCachedLookupPrefix = _lookupPrefix;
+        _guiActions.Add(() => GuiActionUpdateTargets(_lookupPrefix));
       }
     }
 
     // Found items scroll view.
     using (var scrollScope = new GUILayout.ScrollViewScope(
-        partsScrollPos, GUI.skin.box, GUILayout.Height(scrollHeight))) {
-      partsScrollPos = scrollScope.scrollPosition;
-      foreach (var target in targets) {
-        target.GUIAddItem();
+        _partsScrollPos, GUI.skin.box, GUILayout.Height(_scrollHeight))) {
+      _partsScrollPos = scrollScope.scrollPosition;
+      foreach (var target in _targets) {
+        target.GuiAddItem();
       }
     }
 
     GUI.changed = false;
-    allowNoModulesAssemblies =
-        GUILayout.Toggle(allowNoModulesAssemblies, AssembliesWithoutModulesToggleTxt);
+    _allowNoModulesAssemblies =
+        GUILayout.Toggle(_allowNoModulesAssemblies, AssembliesWithoutModulesToggleTxt);
     if (GUI.changed) {
-      guiActions.Add(() => GuiActionUpdateTargets(lookupPrefix));
+      _guiActions.Add(() => GuiActionUpdateTargets(_lookupPrefix));
     }
 
     // Action buttons.
-    var selectedModulesCount = targets.OfType<AssemblyRecord>()
+    var selectedModulesCount = _targets.OfType<AssemblyRecord>()
         .Where(x => x.selected)
         .Sum(x => x.types.Count);
-    var selectedPartsCount = targets.OfType<PartsRecord>()
+    var selectedPartsCount = _targets.OfType<PartsRecord>()
         .Where(x => x.selected)
         .Sum(x => x.parts.Count);
-    var selectedLocsCount = targets.OfType<ConfigRecord>()
+    var selectedLacsCount = _targets.OfType<ConfigRecord>()
         .Count(x => x.selected);
 
-    var selectedAssemblies = targets.OfType<AssemblyRecord>().Where(x => x.selected);
-    var selectedParts = targets.OfType<PartsRecord>().Where(x => x.selected);
-    var selectedConfigs = targets.OfType<ConfigRecord>().Where(x => x.selected);
+    var selectedAssemblies = _targets.OfType<AssemblyRecord>().Where(x => x.selected).ToArray();
+    var selectedParts = _targets.OfType<PartsRecord>().Where(x => x.selected).ToArray();
+    var selectedConfigs = _targets.OfType<ConfigRecord>().Where(x => x.selected).ToArray();
 
     // Strings export controls.
     if (selectedPartsCount > 0
-        || allowNoModulesAssemblies && selectedAssemblies.Any()
-        || !allowNoModulesAssemblies && selectedModulesCount > 0) {
+        || _allowNoModulesAssemblies && selectedAssemblies.Any()
+        || !_allowNoModulesAssemblies && selectedModulesCount > 0) {
       var title = ExportBtnTxt.Format(selectedParts.Sum(x => x.parts.Count),
-                                      selectedAssemblies.Count());
+                                      selectedAssemblies.Length);
       if (GUILayout.Button(title)) {
         GuiActionExportStrings(selectedParts, selectedAssemblies);
       }
@@ -359,9 +371,9 @@ sealed class Controller : MonoBehaviour, IHasGUI {
     }
 
     // Strings reload controls.
-    if (selectedLocsCount > 0) {
-      var title = RefreshBtnTxt.Format(selectedConfigs.Count(),
-                                       selectedParts.Sum(x => x.parts.Count));
+    if (selectedLacsCount > 0) {
+      var title = RefreshBtnTxt.Format(
+          selectedConfigs.Length, selectedParts.Sum(x => x.parts.Count));
       if (GUILayout.Button(title)) {
         StartCoroutine(ExecuteLongAction(
             () => GuiActionRefreshStrings(selectedConfigs, selectedParts)));
@@ -380,8 +392,8 @@ sealed class Controller : MonoBehaviour, IHasGUI {
     using (new GUILayout.HorizontalScope(GUI.skin.box)) {
       GUILayout.Label(CurrentLanguageFieldCaptionTxt);
       GUILayout.FlexibleSpace();
-      selectedLanguageControl.RenderControl(
-          guiActions, GUIStyle.none, new[] {GUILayout.Width(100)});
+      _selectedLanguageControl.RenderControl(
+          _guiActions, GUIStyle.none, new[] {GUILayout.Width(100)});
     }
 
     GUI.DragWindow();
@@ -392,22 +404,23 @@ sealed class Controller : MonoBehaviour, IHasGUI {
   /// <param name="assemblies">The mod assemblies to export the strings from.</param>
   void GuiActionExportStrings(IEnumerable<PartsRecord> parts,
                               IEnumerable<AssemblyRecord> assemblies) {
-    var partsLocs = parts
+    var partsLocalizations = parts
         .SelectMany(x => x.parts)
         .Select(Extractor.EmitItemsForPart)
         .SelectMany(x => x)
         .ToList();
-    var modulesLocs = assemblies
+    var assemblyRecords = assemblies as AssemblyRecord[] ?? assemblies.ToArray();
+    var modulesLocalizations = assemblyRecords
         .SelectMany(x => x.assembly.GetTypes())
         .Select(Extractor.EmitItemsForType)
         .SelectMany(x => x)
         .ToList();
-    DebugEx.Warning(
-        "Export {0} parts strings and {1} modules strings", partsLocs.Count, modulesLocs.Count);
-    var locItems = partsLocs.Union(modulesLocs);
+    DebugEx.Warning("Export {0} parts strings and {1} modules strings",
+                    partsLocalizations.Count, modulesLocalizations.Count);
+    var locItems = partsLocalizations.Union(modulesLocalizations);
     var fileName = "strings.cfg";
-    if (assemblies.Count() == 1) {
-      fileName = assemblies.First().assembly.GetName().Name + "_" + fileName;
+    if (assemblyRecords.Length == 1) {
+      fileName = assemblyRecords.First().assembly.GetName().Name + "_" + fileName;
     }
     var filePath = KspPaths.GetModsDataFilePath(this, "Lang/" + fileName);
     Directory.CreateDirectory(Path.GetDirectoryName(filePath));
@@ -419,62 +432,61 @@ sealed class Controller : MonoBehaviour, IHasGUI {
   /// <summary>Finds all the entities for the prefix, and populates the list.</summary>
   /// <param name="prefix">The prefix to find URL by.</param>
   void GuiActionUpdateTargets(string prefix) {
-    if (targets == null) {
-      targets = new List<ScannedRecord>();
+    if (_targets == null) {
+      _targets = new List<ScannedRecord>();
     } else {
-      targets.Clear();
+      _targets.Clear();
     }
     if (prefix.Length < 3) {
-      targets.Add(new StubRecord() {
+      _targets.Add(new StubRecord() {
           stubText = TypePrefixToStartTxt,
       });
       return;
     }
 
     // Find part configs for the prefix.
-    targets.AddRange(PartLoader.LoadedPartsList
-        .Where(x => x.partUrl.StartsWith(prefix, StringComparison.OrdinalIgnoreCase))
-        .OrderBy(x => x.partUrl)
-        .GroupBy(x => {
-            var pos = x.partUrl.LastIndexOf("/Parts", StringComparison.OrdinalIgnoreCase);
-            return pos != -1 ? x.partUrl.Substring(0, pos + 6) : x.partUrl.Split('/')[0];
-        })
-        .Select(group => new PartsRecord() {
-            urlPrefix = group.Key,
-            parts = group.ToList(),
-        })
-        .Cast<ScannedRecord>());
+    _targets.AddRange(
+        PartLoader.LoadedPartsList
+            .Where(x => x.partUrl.StartsWith(prefix, StringComparison.OrdinalIgnoreCase))
+            .OrderBy(x => x.partUrl)
+            .GroupBy(x => {
+              var pos = x.partUrl.LastIndexOf("/Parts", StringComparison.OrdinalIgnoreCase);
+              return pos != -1 ? x.partUrl.Substring(0, pos + 6) : x.partUrl.Split('/')[0];
+            })
+            .Select(group => new PartsRecord() {
+                urlPrefix = group.Key,
+                parts = group.ToList(),
+            }));
 
     // Find assemblies for the prefix.
     // Utility assemblies of the same version are loaded only once, but they are referred for every
     // URL at which the assembly was found.
-    targets.AddRange(AssemblyLoader.loadedAssemblies
-        .Where(x =>
-            x.url.StartsWith(prefix, StringComparison.OrdinalIgnoreCase)
-            && KspPaths.MakeRelativePathToGameData(x.assembly.Location)
-                .StartsWith(prefix, StringComparison.OrdinalIgnoreCase)
-            && (allowNoModulesAssemblies || x.types.Count > 0))
-        .Select(assembly => new AssemblyRecord() {
-            assembly = assembly.assembly,
-            types = assembly.types.SelectMany(x => x.Value).ToList(),
-            url = assembly.url,
-        })
-        .Cast<ScannedRecord>());
+    _targets.AddRange(
+        AssemblyLoader.loadedAssemblies
+            .Where(x =>
+                 x.url.StartsWith(prefix, StringComparison.OrdinalIgnoreCase)
+                 && KspPaths.MakeRelativePathToGameData(x.assembly.Location)
+                     .StartsWith(prefix, StringComparison.OrdinalIgnoreCase)
+                 && (_allowNoModulesAssemblies || x.types.Count > 0))
+            .Select(assembly => new AssemblyRecord() {
+                assembly = assembly.assembly,
+                types = assembly.types.SelectMany(x => x.Value).ToList(),
+            }));
 
     // Find localization files for the prefix.
-    targets.AddRange(GameDatabase.Instance.GetConfigs("Localization")
-        .Where(x => x.url.StartsWith(lookupPrefix, StringComparison.OrdinalIgnoreCase)
-                    && x.config.GetNodes(Localizer.CurrentLanguage).Any())
-        .Select(url => new ConfigRecord() {
-            url = url.url,
-            filePath = url.parent.fullPath,
-            lang = Localizer.CurrentLanguage,
-            node = url.config.GetNodes(Localizer.CurrentLanguage).FirstOrDefault(),
-        })
-        .Cast<ScannedRecord>());
+    _targets.AddRange(
+        GameDatabase.Instance.GetConfigs("Localization")
+            .Where(x => x.url.StartsWith(_lookupPrefix, StringComparison.OrdinalIgnoreCase)
+                       && x.config.GetNodes(Localizer.CurrentLanguage).Any())
+            .Select(url => new ConfigRecord() {
+                url = url.url,
+                filePath = url.parent.fullPath,
+                lang = Localizer.CurrentLanguage,
+                node = url.config.GetNodes(Localizer.CurrentLanguage).FirstOrDefault(),
+            }));
 
-    if (targets.Count == 0) {
-      targets.Add(new StubRecord() {
+    if (_targets.Count == 0) {
+      _targets.Add(new StubRecord() {
           stubText = NothingFoundForPrefixTxt,
       });
     }
@@ -554,7 +566,7 @@ sealed class Controller : MonoBehaviour, IHasGUI {
   /// <remarks></remarks>
   /// <param name="parts">The parts to patch.</param>
   void GuiExportPartConfigs(IEnumerable<PartsRecord> parts) {
-    var exportParts = parts.SelectMany(x => x.parts);
+    var exportParts = parts.SelectMany(x => x.parts).ToArray();
     var exportPath = KspPaths.GetModsDataFilePath(this, "Parts/");
     foreach (var part in exportParts) {
       var config = ConfigStore.LoadConfigWithComments(
@@ -566,14 +578,14 @@ sealed class Controller : MonoBehaviour, IHasGUI {
 
       // Make the default localizable placeholders for the known part fields.
       var partNode = config.GetNode("PART");
-      foreach (var fieldName in Extractor.localizablePartFields) {
+      foreach (var fieldName in Extractor.LocalizablePartFields) {
         var field = partNode.values.Cast<ConfigNode.Value>()
             .FirstOrDefault(x => x.name == fieldName);
         if (field == null) {
           DebugEx.Warning("Field '{0}' is not found in the part {1} config", fieldName, part);
           continue;
         }
-        if (!LocalizationManager.IsLocalziationTag(field.value)) {
+        if (!LocalizationManager.IsLocalizationTag(field.value)) {
           // Replace a non-localized value by a tag.
           var locTag = Extractor.MakePartFieldLocalizationTag(part.name, fieldName);
           field.comment = locTag + " = " + field.value;
@@ -596,15 +608,15 @@ sealed class Controller : MonoBehaviour, IHasGUI {
     }
     ShowCompletionDialog(
         ConfigSavedDlgTitle,
-        ConfigsSavedInFolderTxt.Format(exportParts.Count(), exportPath));
+        ConfigsSavedInFolderTxt.Format(exportParts.Length, exportPath.Replace("\\", "/")));
   }
 
   /// <summary>Changes the game's language and refreshes whatever possible.</summary>
   /// <remarks>The change is not persistent.</remarks>
   void GuiActionSetLanguage() {
     var oldLang = Localizer.CurrentLanguage;
-    Localizer.SwitchToLanguage(selectedLanguage);
-    GuiActionUpdateTargets(lookupPrefix);
+    Localizer.SwitchToLanguage(_selectedLanguage);
+    GuiActionUpdateTargets(_lookupPrefix);
     GuiActionUpdateAllParts();
     DebugEx.Warning("Changed language: {0} => {1}", oldLang, Localizer.CurrentLanguage);
   }
@@ -626,10 +638,12 @@ sealed class Controller : MonoBehaviour, IHasGUI {
   /// <summary>Creates a simple modal dialog.</summary>
   /// <param name="title">The title of the dialog.</param>
   /// <param name="msg">The string to present in the dialog.</param>
-  void ShowCompletionDialog(string title, string msg) {
+  static void ShowCompletionDialog(string title, string msg) {
     PopupDialog dlg = null;
     dlg = PopupDialog.SpawnPopupDialog(
         new MultiOptionDialog(ModalDialogId, msg, title, null,
+                              // ReSharper disable once PossibleNullReferenceException
+                              // ReSharper disable once AccessToModifiedClosure
                               new DialogGUIButton(CloseDialogBtnTxt, () => dlg.Dismiss())),
         persistAcrossScenes: false, skin: null);
   }
@@ -641,7 +655,7 @@ sealed class Controller : MonoBehaviour, IHasGUI {
   /// <param name="node">The parent node to start from.</param>
   void ExpandLocalizedValues(ConfigNode node) {
     foreach (var field in node.values.Cast<ConfigNode.Value>()) {
-      if (LocalizationManager.IsLocalziationTag(field.value)
+      if (LocalizationManager.IsLocalizationTag(field.value)
           && !LocalizationManager.IsSkippedTag(field.value)
           && string.IsNullOrEmpty(field.comment)) {
         // Make a default representation by adding EN-US strings as a comment.
@@ -652,8 +666,8 @@ sealed class Controller : MonoBehaviour, IHasGUI {
         }
       }
     }
-    foreach (var subnode in node.nodes.Cast<ConfigNode>()) {
-      ExpandLocalizedValues(subnode);
+    foreach (var subNode in node.nodes.Cast<ConfigNode>()) {
+      ExpandLocalizedValues(subNode);
     }
   }
 }

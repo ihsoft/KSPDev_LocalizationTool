@@ -9,8 +9,10 @@ using KSPDev.LogUtils;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 using System.Text.RegularExpressions;
 
+// ReSharper disable once CheckNamespace
 namespace KSPDev.LocalizationTool {
 
 /// <summary>A utility class to manipulate the game's localization content.</summary>
@@ -138,7 +140,7 @@ static class LocalizationManager {
         }
         // Reload all KSPField strings in the module to get the changed version.
         if (i < partInfo.partPrefab.Modules.Count) {
-          LoadKSPFieldsFromNode(partInfo.partPrefab.Modules[i], prefabConf);
+          LoadKspFieldsFromNode(partInfo.partPrefab.Modules[i], prefabConf);
         } else {
           DebugEx.Error(
               "Cannot reload strings in {0}: module #{1} not found", partInfo.partPrefab, i);
@@ -167,6 +169,7 @@ static class LocalizationManager {
     }
 
     // EDITOR: Update the part modules in all the game objects in the scene.
+    // ReSharper disable once InvertIf
     if (HighLogic.LoadedSceneIsEditor) {
       DebugEx.Info("EDITOR: Reload parts in the world...");
       // It can be slow but we don't care - it's not a frequent operation.
@@ -186,7 +189,7 @@ static class LocalizationManager {
   /// Tells if only the first word of the text should be checked.
   /// </param>
   /// <returns><c>true</c> if the text or its first word looks like a localization tag.</returns>
-  public static bool IsLocalziationTag(string txt, bool firstWordOnly = false) {
+  public static bool IsLocalizationTag(string txt, bool firstWordOnly = false) {
     if (string.IsNullOrEmpty(txt)) {
       return false;
     }
@@ -224,7 +227,7 @@ static class LocalizationManager {
         DebugEx.Error("Cannot merge config nodes.\nTO:\n{0}\nFROM:\n{1}", toNode, fromNode);
         return;
       }
-      if (IsLocalziationTag(fromValue.comment, firstWordOnly: true)) {
+      if (IsLocalizationTag(fromValue.comment, firstWordOnly: true)) {
         toValue.value = fromValue.value;
         toValue.comment = fromValue.comment;
       }
@@ -282,7 +285,7 @@ static class LocalizationManager {
   /// <param name="selectedParts">
   /// The names of the parts to update. If <c>null</c>, then update all.
   /// </param>
-  static void UpdateLocalizationInPartHierarchy(Part rootPart, HashSet<string> selectedParts) {
+  static void UpdateLocalizationInPartHierarchy(Part rootPart, ICollection<string> selectedParts) {
     if (selectedParts == null || selectedParts.Contains(rootPart.partInfo.name)) {
       UpdateLocalizationInPartModules(rootPart);
     }
@@ -292,24 +295,26 @@ static class LocalizationManager {
   /// <summary>Updates all the localizable strings in a part.</summary>
   /// <param name="part">The part to load the data in.</param>
   static void UpdateLocalizationInPartModules(Part part) {
+    if (part.partInfo?.partConfig == null) {
+      return;
+    }
     DebugEx.Fine("Reload part modules in {0}...", part);
-    if (part.partInfo != null && part.partInfo.partConfig != null) {
-      var moduleConfigs = part.partInfo.partConfig.GetNodes("MODULE");
-      for (var i = 0 ; i < part.Modules.Count && i < moduleConfigs.Length; i++) {
-        var module = part.Modules[i];
-        var moduleConfig = moduleConfigs[i];
-        LoadKSPFieldsFromNode(module, moduleConfig);
-      }
+    var moduleConfigs = part.partInfo.partConfig.GetNodes("MODULE");
+    for (var i = 0 ; i < part.Modules.Count && i < moduleConfigs.Length; i++) {
+      var module = part.Modules[i];
+      var moduleConfig = moduleConfigs[i];
+      LoadKspFieldsFromNode(module, moduleConfig);
     }
   }
 
   /// <summary>Reloads the string [KSPField] annotated fields from the provided config.</summary>
   /// <param name="module">The module to reload the fields for.</param>
-  /// <param name="node">The config node to geth the values from.</param>
-  static void LoadKSPFieldsFromNode(PartModule module, ConfigNode node) {
-    var fields = module.Fields.Cast<BaseField>()
+  /// <param name="node">The config node to get the values from.</param>
+  static void LoadKspFieldsFromNode(PartModule module, ConfigNode node) {
+    // Update all fields of type string as they may contain a localizable content. 
+    var stringFields = module.Fields.Cast<BaseField>()
         .Where(f => f.FieldInfo.FieldType == typeof(string));
-    foreach (var field in fields) {
+    foreach (var field in stringFields) {
       var strValue = node.GetValue(field.name);
       if (strValue != null) {
         field.SetValue(strValue, module);
@@ -326,7 +331,7 @@ static class LocalizationManager {
           "Cannot properly unescape value, falling back to a simple approach: err={0}, value={1}",
           ex.Message, srcValue);
     }
-    return srcValue.Replace("\\n", "\n").Replace("\\\"", "\"").Replace("\\t", "\t");;
+    return srcValue.Replace("\\n", "\n").Replace("\\\"", "\"").Replace("\\t", "\t");
   }
 }
 

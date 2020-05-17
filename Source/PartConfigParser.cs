@@ -9,6 +9,7 @@ using System.IO;
 using System.Linq;
 using System.Text.RegularExpressions;
 
+// ReSharper disable once CheckNamespace
 namespace KSPDev.LocalizationTool {
 
 /// <summary>Parser for the part configs with comments and localization support.</summary>
@@ -25,8 +26,8 @@ namespace KSPDev.LocalizationTool {
 /// </para>
 /// </remarks>
 public sealed class PartConfigParser {
-  readonly bool localizeValues;
-  readonly bool skipLineComments;
+  readonly bool _localizeValues;
+  readonly bool _skipLineComments;
 
   /// <summary>Parses a beginning of the multiline subnode declaration.</summary>
   /// <remarks>
@@ -86,8 +87,8 @@ public sealed class PartConfigParser {
   /// <returns>A loaded config node.</returns>
   public PartConfigParser(bool localizeValues = true,
                           bool skipLineComments = false) {
-    this.localizeValues = localizeValues;
-    this.skipLineComments = skipLineComments;
+    this._localizeValues = localizeValues;
+    this._skipLineComments = skipLineComments;
   }
 
   /// <summary>Parses the file as a stock <c>ConfigNode</c>.</summary>
@@ -112,7 +113,7 @@ public sealed class PartConfigParser {
       var line = lines[lineNum];
       if (line.Length == 0) {
         lineNum++;
-        if (!skipLineComments) {
+        if (!_skipLineComments) {
           node.AddValue("__commentField", "");
         }
         continue;
@@ -143,7 +144,7 @@ public sealed class PartConfigParser {
         line = line.Substring(0, commentPos).TrimEnd();
         if (line.Length == 0) {
           lineNum++;
-          if (!skipLineComments) {
+          if (!_skipLineComments) {
             node.AddValue("__commentField", comment);
           }
           continue;
@@ -156,9 +157,9 @@ public sealed class PartConfigParser {
       if (keyValueMatch.Success) {
         // Localize the value if it starts from "#". There can be false positives.
         var value = keyValueMatch.Groups[2].Value;
-        if (localizeValues && LocalizationManager.IsLocalziationTag(value)) {
+        if (_localizeValues && LocalizationManager.IsLocalizationTag(value)) {
           var locValue = Localizer.Format(value);
-          if (!LocalizationManager.IsLocalziationTag(comment, firstWordOnly: true)) {
+          if (!LocalizationManager.IsLocalizationTag(comment, firstWordOnly: true)) {
             // Simulate the localized comment if one is missing. It will be used when updating
             // parts.
             comment = value + " = " + locValue;

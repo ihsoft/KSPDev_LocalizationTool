@@ -10,6 +10,7 @@ using System.Linq;
 using System.Reflection;
 using System.Text.RegularExpressions;
 
+// ReSharper disable once CheckNamespace
 namespace KSPDev.LocalizationTool {
 
 static class Extractor {
@@ -45,7 +46,7 @@ static class Extractor {
       config.values.Remove(field);  // Don't handle it down the stream.
       string locTag = null;
       string locDefaultValue = null;
-      if (LocalizationManager.IsLocalziationTag(field.comment, firstWordOnly: true)) {
+      if (LocalizationManager.IsLocalizationTag(field.comment, firstWordOnly: true)) {
         var match = Regex.Match(field.comment, @"^(#[a-zA-Z0-9_-]+)\s*=\s*(.+?)$");
         if (match.Success) {
           locTag = match.Groups[1].Value;
@@ -55,10 +56,11 @@ static class Extractor {
           }
         } else {
           DebugEx.Warning(
-              "Cannot resolve defult localization tag in field {0} for part {1}: {2}",
+              "Cannot resolve default localization tag in field {0} for part {1}: {2}",
               fieldName, config.GetValue("name"), field.comment);
         }
       }
+      // ReSharper disable once UseStringInterpolation
       var fieldOrderStr = string.Format(
           "\0x00_{0:000}_{1}",  // Use zero prefix to place it before anything else.
           Controller.partFieldsSorting.IndexOf(fieldName, StringComparison.Ordinal),
@@ -98,13 +100,13 @@ static class Extractor {
         memberItems = EmitItemsForLocalizableMessage(member);
       }
       if (memberItems.Count == 0) {
-        memberItems = EmitItemsForKSPField(member);
+        memberItems = EmitItemsForKspField(member);
       }
       if (memberItems.Count == 0) {
-        memberItems = EmitItemsForKSPEvent(member);
+        memberItems = EmitItemsForKspEvent(member);
       }
       if (memberItems.Count == 0) {
-        memberItems = EmitItemsForKSPAction(member);
+        memberItems = EmitItemsForKspAction(member);
       }
       res.AddRange(memberItems);
     }
@@ -126,7 +128,7 @@ static class Extractor {
   /// A string to add at the tag end to disambiguate the otherwise identical strings.
   /// </param>
   /// <returns>A complete and correct localization tag.</returns>
-  public static string MakeTypeMemberLocalizationTag(MemberInfo info, string nameSuffix = "") {
+  static string MakeTypeMemberLocalizationTag(MemberInfo info, string nameSuffix = "") {
     return "#" + info.DeclaringType.FullName.Replace(".", "_") + "_" + info.Name + nameSuffix;
   }
 
@@ -134,7 +136,7 @@ static class Extractor {
   /// <summary>Extracts localization items from the <c>[KSPField]</c> annotated fields.</summary>
   /// <param name="info">The type member to extract the strings for.</param>
   /// <returns>All the localization items for the member.</returns>
-  static List<LocItem> EmitItemsForKSPField(MemberInfo info) {
+  static List<LocItem> EmitItemsForKspField(MemberInfo info) {
     var res = new List<LocItem>();
     var attrObj = info.GetCustomAttributes(false).OfType<KSPField>().FirstOrDefault();
     if (attrObj == null) {
@@ -178,38 +180,39 @@ static class Extractor {
 
     // Get localizations for UI_Control
     var uiControlAttr = info.GetCustomAttributes(false).OfType<UI_Control>().FirstOrDefault();
-    if (uiControlAttr != null) {
-      var uiToggleAttr = uiControlAttr as UI_Toggle;
-      if (uiToggleAttr != null) {
-        var guiEnabledLoc = GetItemFromLocalizableObject(
-            info, groupKey, subgroupKey, spec: StdSpecTags.ToggleEnabled);
-        if (!guiEnabledLoc.HasValue && !string.IsNullOrEmpty(uiToggleAttr.displayEnabledText)) {
-          guiEnabledLoc = new LocItem() {
-              groupKey = groupKey,
-              subgroupKey = subgroupKey,
-              fullFilePath = info.DeclaringType.Assembly.Location,
-              locTag = MakeTypeMemberLocalizationTag(info, nameSuffix: "_ToggleEnabled"),
-              locDefaultValue = uiToggleAttr.displayEnabledText,
-          };
-        }
-        if (guiEnabledLoc.HasValue) {
-          res.Add(guiEnabledLoc.Value);
-        }
+    if (uiControlAttr == null) {
+      return res;
+    }
+    var uiToggleAttr = uiControlAttr as UI_Toggle;
+    if (uiToggleAttr != null) {
+      var guiEnabledLoc = GetItemFromLocalizableObject(
+          info, groupKey, subgroupKey, spec: StdSpecTags.ToggleEnabled);
+      if (!guiEnabledLoc.HasValue && !string.IsNullOrEmpty(uiToggleAttr.displayEnabledText)) {
+        guiEnabledLoc = new LocItem() {
+            groupKey = groupKey,
+            subgroupKey = subgroupKey,
+            fullFilePath = info.DeclaringType.Assembly.Location,
+            locTag = MakeTypeMemberLocalizationTag(info, nameSuffix: "_ToggleEnabled"),
+            locDefaultValue = uiToggleAttr.displayEnabledText,
+        };
+      }
+      if (guiEnabledLoc.HasValue) {
+        res.Add(guiEnabledLoc.Value);
+      }
 
-        var guiDisabledLoc = GetItemFromLocalizableObject(
-            info, groupKey, subgroupKey, spec: StdSpecTags.ToggleDisabled);
-        if (!guiDisabledLoc.HasValue && !string.IsNullOrEmpty(uiToggleAttr.displayDisabledText)) {
-          guiDisabledLoc = new LocItem() {
-              groupKey = groupKey,
-              subgroupKey = subgroupKey,
-              fullFilePath = info.DeclaringType.Assembly.Location,
-              locTag = MakeTypeMemberLocalizationTag(info, nameSuffix: "_ToggleDisabled"),
-              locDefaultValue = uiToggleAttr.displayDisabledText,
-          };
-        }
-        if (guiDisabledLoc.HasValue) {
-          res.Add(guiDisabledLoc.Value);
-        }
+      var guiDisabledLoc = GetItemFromLocalizableObject(
+          info, groupKey, subgroupKey, spec: StdSpecTags.ToggleDisabled);
+      if (!guiDisabledLoc.HasValue && !string.IsNullOrEmpty(uiToggleAttr.displayDisabledText)) {
+        guiDisabledLoc = new LocItem() {
+            groupKey = groupKey,
+            subgroupKey = subgroupKey,
+            fullFilePath = info.DeclaringType.Assembly.Location,
+            locTag = MakeTypeMemberLocalizationTag(info, nameSuffix: "_ToggleDisabled"),
+            locDefaultValue = uiToggleAttr.displayDisabledText,
+        };
+      }
+      if (guiDisabledLoc.HasValue) {
+        res.Add(guiDisabledLoc.Value);
       }
     }
 
@@ -219,27 +222,28 @@ static class Extractor {
   /// <summary>Extracts localization items from the <c>[KSPEvent]</c> annotated fields.</summary>
   /// <param name="info">The type member to extract the strings for.</param>
   /// <returns>All the localization items for the member.</returns>
-  static List<LocItem> EmitItemsForKSPEvent(MemberInfo info) {
+  static List<LocItem> EmitItemsForKspEvent(MemberInfo info) {
     var res = new List<LocItem>();
     var attrObj = info.GetCustomAttributes(false).OfType<KSPEvent>().FirstOrDefault();
-    if (attrObj != null) {
-      var groupKey = "Type: " + info.DeclaringType.FullName;
-      const string sortKey = "KSP Events";
-      // Get guiName localization.
-      var guiNameLoc = GetItemFromLocalizableObject(info, groupKey, sortKey);
-      if (!guiNameLoc.HasValue && !string.IsNullOrEmpty(attrObj.guiName)) {
-        // Fallback to the KSPEvent values.
-        guiNameLoc = new LocItem() {
-            groupKey = groupKey,
-            subgroupKey = sortKey,
-            fullFilePath = info.DeclaringType.Assembly.Location,
-            locTag = MakeTypeMemberLocalizationTag(info),
-            locDefaultValue = attrObj.guiName,
-        };
-      }
-      if (guiNameLoc.HasValue) {
-        res.Add(guiNameLoc.Value);
-      }
+    if (attrObj == null) {
+      return res;
+    }
+    var groupKey = "Type: " + info.DeclaringType.FullName;
+    const string sortKey = "KSP Events";
+    // Get guiName localization.
+    var guiNameLoc = GetItemFromLocalizableObject(info, groupKey, sortKey);
+    if (!guiNameLoc.HasValue && !string.IsNullOrEmpty(attrObj.guiName)) {
+      // Fallback to the KSPEvent values.
+      guiNameLoc = new LocItem() {
+          groupKey = groupKey,
+          subgroupKey = sortKey,
+          fullFilePath = info.DeclaringType.Assembly.Location,
+          locTag = MakeTypeMemberLocalizationTag(info),
+          locDefaultValue = attrObj.guiName,
+      };
+    }
+    if (guiNameLoc.HasValue) {
+      res.Add(guiNameLoc.Value);
     }
     return res;
   }
@@ -247,27 +251,28 @@ static class Extractor {
   /// <summary>Extracts localization items from the <c>[KSPAction]</c> annotated fields.</summary>
   /// <param name="info">The type member to extract the strings for.</param>
   /// <returns>All the localization items for the member.</returns>
-  static List<LocItem> EmitItemsForKSPAction(MemberInfo info) {
+  static List<LocItem> EmitItemsForKspAction(MemberInfo info) {
     var res = new List<LocItem>();
     var attrObj = info.GetCustomAttributes(false).OfType<KSPAction>().FirstOrDefault();
-    if (attrObj != null) {
-      var groupKey = "Type: " + info.DeclaringType.FullName;
-      const string sortKey = "KSP Actions";
-      // Get guiName localization.
-      var guiNameLoc = GetItemFromLocalizableObject(info, groupKey, sortKey);
-      if (!guiNameLoc.HasValue && !string.IsNullOrEmpty(attrObj.guiName)) {
-        // Fallback to the KSPAction values.
-        guiNameLoc = new LocItem() {
-            groupKey = groupKey,
-            subgroupKey = sortKey,
-            fullFilePath = info.DeclaringType.Assembly.Location,
-            locTag = MakeTypeMemberLocalizationTag(info),
-            locDefaultValue = attrObj.guiName,
-        };
-      }
-      if (guiNameLoc.HasValue) {
-        res.Add(guiNameLoc.Value);
-      }
+    if (attrObj == null) {
+      return res;
+    }
+    var groupKey = "Type: " + info.DeclaringType.FullName;
+    const string sortKey = "KSP Actions";
+    // Get guiName localization.
+    var guiNameLoc = GetItemFromLocalizableObject(info, groupKey, sortKey);
+    if (!guiNameLoc.HasValue && !string.IsNullOrEmpty(attrObj.guiName)) {
+      // Fallback to the KSPAction values.
+      guiNameLoc = new LocItem() {
+          groupKey = groupKey,
+          subgroupKey = sortKey,
+          fullFilePath = info.DeclaringType.Assembly.Location,
+          locTag = MakeTypeMemberLocalizationTag(info),
+          locDefaultValue = attrObj.guiName,
+      };
+    }
+    if (guiNameLoc.HasValue) {
+      res.Add(guiNameLoc.Value);
     }
     return res;
   }
@@ -286,27 +291,26 @@ static class Extractor {
       return res;
     }
     if ((field.Attributes & FieldAttributes.Static) == 0) {
-      DebugEx.Warning("Skipping a non-static message field: {0}.{1}",
-                      field.DeclaringType.FullName, field.Name);
+      DebugEx.Warning("Skipping a non-static message field: {0}", GetFullMemberName(field));
       return res;
     }
     var value = field.GetValue(null);
     if (value == null) {
-      DebugEx.Error("The message field is NULL: {0}.{1}", field.DeclaringType.FullName, field.Name);
+      DebugEx.Error("The message field is NULL: {0}", GetFullMemberName(field));
       return res;
     }
     var msgTag = ReflectionHelper.GetReflectedString(value, "tag") ?? "";
     var defaultTemplate = ReflectionHelper.GetReflectedString(value, "defaultTemplate");
     if (defaultTemplate == null) {
       // The template is never null.
-      DebugEx.Warning("Failed to read a message from {0} in {1}.{2}",
-                      field.FieldType.FullName,
-                      field.DeclaringType.FullName, field.Name);
+      //FIXME??? what?!
+      DebugEx.Warning("Failed to read a message from {0} in {1}",
+                      field.FieldType.FullName, GetFullMemberName(field));
       return res;
     }
     var description = ReflectionHelper.GetReflectedString(value, "description");
     var locExample = ReflectionHelper.GetReflectedString(value, "example");
-    if (!LocalizationManager.IsLocalziationTag(msgTag)) {
+    if (!LocalizationManager.IsLocalizationTag(msgTag)) {
       msgTag = MakeTypeMemberLocalizationTag(info);
       DebugEx.Warning("Auto generate a tag {0}", msgTag);
     }
@@ -406,6 +410,11 @@ static class Extractor {
     
     return res;
   }
+
+  /// <summary>Returns a fully qualified name of the member.</summary>
+  static string GetFullMemberName(MemberInfo info) {
+    return info.DeclaringType.FullName + "." + info.Name;
+  } 
   #endregion
 }
 

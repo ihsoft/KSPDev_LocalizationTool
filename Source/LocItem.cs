@@ -2,6 +2,7 @@
 // Author: igor.zavoychinskiy@gmail.com
 // This software is distributed under Public domain license.
 
+// ReSharper disable once CheckNamespace
 namespace KSPDev.LocalizationTool {
 
 /// <summary>A container for an item that needs localization.</summary>

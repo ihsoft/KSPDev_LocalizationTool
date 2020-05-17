@@ -4,6 +4,7 @@
 
 using System;
 
+// ReSharper disable once CheckNamespace
 namespace KSPDev.LocalizationTool {
 
 /// <summary>A set of the methods to deal with a type via the reflections.</summary>
