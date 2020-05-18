@@ -616,7 +616,7 @@ sealed class Controller : MonoBehaviour, IHasGUI {
   void GuiActionSetLanguage() {
     var oldLang = Localizer.CurrentLanguage;
     Localizer.SwitchToLanguage(_selectedLanguage);
-    GuiActionUpdateTargets(_lookupPrefix);
+    GuiActionUpdateTargets(_lookupPrefix);  // To update lang. 
     GuiActionUpdateAllParts();
     DebugEx.Warning("Changed language: {0} => {1}", oldLang, Localizer.CurrentLanguage);
   }
