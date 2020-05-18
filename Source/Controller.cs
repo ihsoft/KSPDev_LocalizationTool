@@ -545,18 +545,14 @@ sealed class Controller : MonoBehaviour, IHasGUI {
     PartLoader.LoadedPartsList
         .ForEach(LocalizationManager.LocalizePrefab);
     LocalizationManager.ReloadPartModuleStrings();
-
-    // Force all strings to recalculate in case of they were cached.
-    GameEvents.onLanguageSwitched.Fire();
-
     PartLoader.LoadedPartsList
         .ForEach(LocalizationManager.LocalizePartInfo);
 
     // Update open part menus.
     LocalizationManager.LocalizePartMenus();
 
-    // Force the localization methods to trigger on the refreshed prefab.
-    GameEvents.onLanguageSwitched.Fire();
+    // Force refresh on all the parts and modules. This will also refresh the cached strings.
+    Localizer.SwitchToLanguage(Localizer.CurrentLanguage);
   }
 
   /// <summary>
