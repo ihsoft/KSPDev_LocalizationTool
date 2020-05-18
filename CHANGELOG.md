@@ -1,5 +1,6 @@
 # 1.10 (pre-release):
 * [Fix #16] Bad escaping in the loaclization makes the tool crashing.
+* [Fix #17] Support stock fields/events/actions GUI strings reloading.
 
 # 1.9 (April 26h, 2020):
 * [Change] `KSP 1.8` compatibility. __WARNING__: the mod won't work with version lower than `KSP 1.8`!

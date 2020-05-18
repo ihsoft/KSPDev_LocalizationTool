@@ -124,6 +124,7 @@ static class LocalizationManager {
     if (newPartConfig == null) {
       return;
     }
+    UpdateStockMembersInPart(partInfo.partPrefab);
     var newModuleConfigs = newPartConfig.GetNodes("MODULE");
     var prefabModuleConfigs = partInfo.partConfig.GetNodes("MODULE");
     if (newModuleConfigs.Length <= prefabModuleConfigs.Length) {
@@ -299,6 +300,7 @@ static class LocalizationManager {
       return;
     }
     DebugEx.Fine("Reload part modules in {0}...", part);
+    UpdateStockMembersInPart(part);
     var moduleConfigs = part.partInfo.partConfig.GetNodes("MODULE");
     for (var i = 0 ; i < part.Modules.Count && i < moduleConfigs.Length; i++) {
       var module = part.Modules[i];
@@ -320,6 +322,121 @@ static class LocalizationManager {
         field.SetValue(strValue, module);
       }
     }
+  }
+
+  /// <summary>Re-loads all the stock attributed members with the update GUI names.</summary>
+  /// <remarks>
+  /// It basically just re-applies the strings from the attributes as it happens on the assembly
+  /// load. The language must be switched at this point to pickup the right values.
+  /// </remarks>
+  /// <param name="part">The part to refresh.</param>
+  static void UpdateStockMembersInPart(Part part) {
+    UpdateStockFields(part.Fields);
+    UpdateStockEvents(part.Events);
+    UpdateStockActions(part.Actions);
+    foreach (var module in part.Modules) {
+      UpdateStockFields(module.Fields);
+      UpdateStockEvents(module.Events);
+      UpdateStockActions(module.Actions);
+    }
+  }
+
+  /// <summary>Re-applies GUI name and GUI units strings from the event attributes.</summary>
+  /// <param name="fields">The fields to process.</param>
+  static void UpdateStockFields(BaseFieldList fields) {
+    foreach (var kspField in fields) {
+      SetupArgumentFromAttribute(
+          kspField.MemberInfo, kspField.Attribute.GetType(), nameof(KSPField.guiName),
+          x => {
+            kspField.Attribute.guiName = x;
+            kspField.guiName = kspField.Attribute.guiName;
+          });
+      SetupArgumentFromAttribute(
+          kspField.MemberInfo, kspField.Attribute.GetType(), nameof(KSPField.guiUnits),
+          x => {
+            kspField.Attribute.guiUnits = x;
+            kspField.guiUnits = kspField.Attribute.guiUnits;
+          });
+    }
+  }
+
+  /// <summary>Re-applies GUI name string from the event attributes.</summary>
+  /// <param name="events">The events to process.</param>
+  static void UpdateStockEvents(BaseEventList events) {
+    var ownerType = events.module != null
+        ? events.module.GetType()
+        : events.part.GetType(); 
+    foreach (var kspEvent in events) {
+      var info = ownerType.GetMethod(
+          kspEvent.name,
+          BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic,
+          null /* default binder */,
+          new Type[0],
+          null /* no modifiers */);
+      if (info == null) {
+        DebugEx.Error("Cannot get event: {0}.{1}", ownerType.FullName, kspEvent.name);
+        continue;
+      }
+      info = info.GetBaseDefinition();  // Only the base has the right attributes.
+      SetupArgumentFromAttribute(
+          info, typeof(KSPEvent), nameof(KSPEvent.guiName),
+          x => {
+            kspEvent.guiName = x;
+          });
+    }
+  }
+
+  /// <summary>Re-applies GUI name string from the action attributes.</summary>
+  /// <param name="actions">The actions to process.</param>
+  static void UpdateStockActions(BaseActionList actions) {
+    var ownerType = actions.module != null
+        ? actions.module.GetType()
+        : actions.part.GetType(); 
+    foreach (var kspAction in actions) {
+      var info = ownerType.GetMethod(
+          kspAction.name,
+          BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic,
+          null /* default binder */,
+          new[] {typeof(KSPActionParam)},
+          null /* no modifiers */);
+      if (info == null) {
+        DebugEx.Error("Cannot get action: {0}.{1}", ownerType.FullName, kspAction.name);
+        continue;
+      }
+      info = info.GetBaseDefinition();  // Only the base has the right attributes.
+      SetupArgumentFromAttribute(
+          info, typeof(KSPAction), nameof(KSPAction.guiName),
+          x => {
+            kspAction.guiName = x;
+          });
+    }
+  }
+
+  /// <summary>Invokes a callback with the original value of an attribute argument.</summary>
+  /// <param name="member">The attributed member.</param>
+  /// <param name="attrType">The type of the attribute.</param>
+  /// <param name="argName">The name of the attribute argument.</param>
+  /// <param name="setupFn">
+  /// The callback that is called if the specified argument in the attribute is found.
+  /// </param>
+  static void SetupArgumentFromAttribute(
+      MemberInfo member, Type attrType, string argName, Action<string> setupFn) {
+    var fieldAttr = member.CustomAttributes.FirstOrDefault(x => x.AttributeType == attrType);
+    if (fieldAttr == null) {
+      DebugEx.Error("Attribute not found: attrType={0}, member={1}.{2}",
+                    attrType, member.DeclaringType, member.Name);
+      return;
+    }
+    var namedArgument = fieldAttr.NamedArguments?
+        .FirstOrDefault(x => x.MemberName == argName);
+    if (namedArgument == null) {
+      DebugEx.Error("Cannot fetch named argument: attrType={0}, member={1}.{2}, argName={3}",
+                    attrType, member.DeclaringType, member.Name, argName);
+      DebugEx.Warning("Available arguments for attribute {0}: {1}",
+                      DbgFormatter.C2S(fieldAttr.NamedArguments, predicate: x => x.MemberName));
+      return;
+    }
+    setupFn((string) namedArgument.Value.TypedValue.Value);
   }
 
   /// <summary>Unescapes the string even if it has escaping errors.</summary>
