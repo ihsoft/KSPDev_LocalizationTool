@@ -232,6 +232,9 @@ sealed class Controller : MonoBehaviour, IHasGUI {
   const string ModalDialogId = "LocToolModalDialog";
   string _selectedLanguage;
   HermeticGUIControlText _selectedLanguageControl;
+
+  GuiScale _guiScale;
+  GUIStyle _guiNoWrapLabel;
   #endregion
 
   #region Default locale
@@ -270,6 +273,8 @@ sealed class Controller : MonoBehaviour, IHasGUI {
         this, langField, useOwnLayout: true,
         onAfterUpdate: () => StartCoroutine(ExecuteLongAction(GuiActionSetLanguage)));
     _selectedLanguage = Localizer.CurrentLanguage;
+    _guiScale = new GuiScale(
+        getPivotFn: () => new Vector2(_windowRect.x, _windowRect.y), onScaleUpdatedFn: MakeGuiStyles);
   }
 
   /// <summary>Only stores session settings.</summary>
@@ -292,9 +297,12 @@ sealed class Controller : MonoBehaviour, IHasGUI {
       if (_targets == null) {
         GuiActionUpdateTargets(_lookupPrefix);
       }
-      _windowRect = GUILayout.Window(
-          GetInstanceID(), _windowRect, MakeConsoleWindow,
-          MainWindowTitleTxt.Format(GetType().Assembly.GetName().Version));
+      using (new GuiMatrixScope()) {
+        _guiScale.UpdateMatrix();
+        _windowRect = GUILayout.Window(
+            GetInstanceID(), _windowRect, MakeConsoleWindow,
+            MainWindowTitleTxt.Format(GetType().Assembly.GetName().Version));
+      }
     }
   }
   #endregion
@@ -305,7 +313,7 @@ sealed class Controller : MonoBehaviour, IHasGUI {
     _guiActions.ExecutePendingGuiActions();
     // Search prefix controls.
     using (new GUILayout.HorizontalScope(GUI.skin.box)) {
-      GUILayout.Label(UrlPrefixFieldCaptionTxt, GUILayout.ExpandWidth(false));
+      GUILayout.Label(UrlPrefixFieldCaptionTxt, _guiNoWrapLabel, GUILayout.ExpandWidth(false));
       _lookupPrefix = GUILayout.TextField(_lookupPrefix, GUILayout.ExpandWidth(true)).TrimStart();
       if (_lookupPrefix != _lastCachedLookupPrefix) {
         _lastCachedLookupPrefix = _lookupPrefix;
@@ -390,13 +398,20 @@ sealed class Controller : MonoBehaviour, IHasGUI {
     }
 
     using (new GUILayout.HorizontalScope(GUI.skin.box)) {
-      GUILayout.Label(CurrentLanguageFieldCaptionTxt);
+      GUILayout.Label(CurrentLanguageFieldCaptionTxt, _guiNoWrapLabel);
       GUILayout.FlexibleSpace();
       _selectedLanguageControl.RenderControl(
           _guiActions, GUIStyle.none, new[] {GUILayout.Width(100)});
     }
 
     GUI.DragWindow();
+  }
+
+  /// <summary>Makes the styles when scale is changed or initiated.</summary>
+  void MakeGuiStyles() {
+    _guiNoWrapLabel = new GUIStyle(GUI.skin.label) {
+        wordWrap = false,
+    };
   }
 
   /// <summary>Saves the strings for the selected entities into a new file.</summary>
