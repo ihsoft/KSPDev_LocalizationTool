@@ -261,8 +261,7 @@ sealed class Controller : MonoBehaviour, IHasGUI {
   /// <summary>Only loads session settings.</summary>
   void Awake() {
     ConfigAccessor.ReadFieldsInType(typeof(Controller), null /* instance */);
-    ConfigAccessor.ReadFieldsInType(
-        typeof(Controller), this, group: StdPersistentGroups.SessionGroup);
+    ConfigAccessor.ReadFieldsInType(typeof(Controller), this, group: StdPersistentGroups.SessionGroup);
 
     _toggleConsoleKeyEvent = Event.KeyboardEvent(_toggleConsoleKey);
     _windowRect = new Rect(_windowPos, _windowSize);
@@ -660,8 +659,7 @@ sealed class Controller : MonoBehaviour, IHasGUI {
   }
 
   /// <summary>
-  /// Recursively goes thru the node fields and adds a stock-default comment for the localized
-  /// field values.
+  /// Recursively goes through the node fields and adds a stock-default comment for the localized field values.
   /// </summary>
   /// <param name="node">The parent node to start from.</param>
   void ExpandLocalizedValues(ConfigNode node) {

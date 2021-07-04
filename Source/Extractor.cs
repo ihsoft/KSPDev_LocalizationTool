@@ -34,13 +34,11 @@ static class Extractor {
       return res;
     }
 
-    // Go thru the fields we know must be localized.
+    // Go through the fields we know must be localized.
     foreach (var fieldName in LocalizablePartFields) {
-      var field = config.values.Cast<ConfigNode.Value>()
-          .FirstOrDefault(x => x.name == fieldName);
+      var field = config.values.Cast<ConfigNode.Value>().FirstOrDefault(x => x.name == fieldName);
       if (field == null) {
-        DebugEx.Warning("Field '{0}' is not found in the part {1} config",
-                        fieldName, part.name);
+        DebugEx.Warning("Field '{0}' is not found in the part {1} config", fieldName, part.name);
         continue;
       }
       config.values.Remove(field);  // Don't handle it down the stream.
@@ -55,9 +53,8 @@ static class Extractor {
             locDefaultValue = match.Groups[2].Value; 
           }
         } else {
-          DebugEx.Warning(
-              "Cannot resolve default localization tag in field {0} for part {1}: {2}",
-              fieldName, config.GetValue("name"), field.comment);
+          DebugEx.Warning("Cannot resolve default localization tag in field {0} for part {1}: {2}",
+                          fieldName, config.GetValue("name"), meta.inlineComment);
         }
       }
       // ReSharper disable once UseStringInterpolation
@@ -375,7 +372,7 @@ static class Extractor {
   static List<LocItem> EmitItemsForNode(AvailablePart part, ConfigNode config) {
     var res = new List<LocItem>();
 
-    // Go thru all the fields to detect if there are localized optional fields.
+    // Go through all the fields to detect if there are localized optional fields.
     foreach (var field in config.values.Cast<ConfigNode.Value>()) {
       if (string.IsNullOrEmpty(field.comment)) {
         continue;

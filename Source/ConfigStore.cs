@@ -273,8 +273,7 @@ static class ConfigStore {
   /// </param>
   /// <param name="comment">The optional comment to add to the right of the field value.</param>
   /// <returns>A properly formatted line.</returns>
-  static string MakeConfigNodeLine(int indentation, string key, string value,
-                                          string comment = null) {
+  static string MakeConfigNodeLine(int indentation, string key, string value, string comment = null) {
     return new string('\t', indentation) + key + " = " + EscapeValue(value)
         + (comment != null ? " // " + comment : "");
   }
