@@ -1,6 +1,6 @@
 # 1.10 (pre-release):
-* [Fix #16] Bad escaping in the loaclization makes the tool crashing.
-* [Fix #17] Support stock fields/events/actions GUI strings reloading.
+* [Fix #16] Bad escaping in the localization makes the tool crashing.
+* [Fix #17] Support the stock fields/events/actions GUI strings reloading.
 * [Enhancement] Support the game's UI scale.
 
 # 1.9 (April 26h, 2020):
