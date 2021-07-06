@@ -44,8 +44,9 @@ static class Extractor {
       config.values.Remove(field);  // Don't handle it down the stream.
       string locTag = null;
       string locDefaultValue = null;
-      if (LocalizationManager.IsLocalizationTag(field.comment, firstWordOnly: true)) {
-        var match = Regex.Match(field.comment, @"^(#[a-zA-Z0-9_-]+)\s*=\s*(.+?)$");
+      var meta = MetaBlock.MakeFromString(field.comment);
+      if (LocalizationManager.IsLocalizationTag(meta.inlineComment, firstWordOnly: true)) {
+        var match = Regex.Match(meta.inlineComment, @"^(#[a-zA-Z0-9_-]+)\s*=\s*(.+?)$");
         if (match.Success) {
           locTag = match.Groups[1].Value;
           if (field.value == locTag) {
@@ -377,7 +378,9 @@ static class Extractor {
       if (string.IsNullOrEmpty(field.comment)) {
         continue;
       }
-      var match = Regex.Match(field.comment, @"^\s*(#[a-zA-Z0-9_-]+)\s*=\s*(.+?)$");
+      var meta = MetaBlock.MakeFromString(field.comment);
+      var comment = meta.inlineComment ?? "";
+      var match = Regex.Match(comment, @"^(#[a-zA-Z0-9_-]+)\s*=\s*(.+?)$");
       if (!match.Success) {
         continue;  // Not localized.
       }

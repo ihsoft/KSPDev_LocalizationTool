@@ -27,7 +27,6 @@ namespace KSPDev.LocalizationTool {
 /// </remarks>
 public sealed class PartConfigParser {
   readonly bool _localizeValues;
-  readonly bool _skipLineComments;
 
   /// <summary>Parses a beginning of the multiline subnode declaration.</summary>
   /// <remarks>
@@ -41,7 +40,7 @@ public sealed class PartConfigParser {
   /// }
   /// </code>
   /// </remarks>
-  static readonly Regex NodeMultiLinePrefixDeclRe = new Regex(@"^\s*(\S+)\s*$");
+  static readonly Regex NodeMultiLinePrefixDeclRe = new Regex(@"^\s*(\W?)(\S+)\s*(.*?)\s*?$");
 
   /// <summary>Parses a beginning subnode declaration that starts on the same line.</summary>
   /// <remarks>
@@ -58,7 +57,7 @@ public sealed class PartConfigParser {
   /// MODULE { foo = bar }
   /// </code>
   /// </remarks>
-  static readonly Regex NodeSameLineDeclRe = new Regex(@"^\s*(\S+)\s*{\s*(.*)$");
+  static readonly Regex NodeSameLineDeclRe = new Regex(@"^\s*(\W?)(\S+)\s*{\s*(.*?)\s*$");
 
   /// <summary>Parses a simple key/value pair.</summary>
   /// <remarks>
@@ -70,25 +69,22 @@ public sealed class PartConfigParser {
   /// // Multi-line: one value.
   /// foo = bar
   /// // Single line: two nodes.
-  /// foo = {} bar = {}
+  /// foo = {} bar = {} FIXME
   /// </code>
   /// </remarks>
-  static readonly Regex KeyValueLineDeclRe = new Regex(@"^\s*(\S+)\s*=\s*(.*?)\s*(}.*)?$");
+  static readonly Regex KeyValueLineDeclRe = new Regex(@"^\s*(\W?)(\S+)\s*(\W?)=\s*(.*?)\s*(//\s*(.*))?$");
 
+  /// <summary>Parses a regular comment line.</summary>
+  static readonly Regex CommentDeclRe = new Regex(@"^\s*//\s*(.*?)\s*?$");
+  
   /// <summary>Creates a parser with the desired options.</summary>
   /// <param name="localizeValues">
   /// Tells if the field values should be localized. If not, then they are returned from the file
   /// "as-is".
   /// </param>
-  /// <param name="skipLineComments">
-  /// Tells to not emit the "__commentField" fields for the standalone comments. It doesn't affect
-  /// the in-line comments; they are always assigned to the related value or subnode.
-  /// </param>
   /// <returns>A loaded config node.</returns>
-  public PartConfigParser(bool localizeValues = true,
-                          bool skipLineComments = false) {
-    this._localizeValues = localizeValues;
-    this._skipLineComments = skipLineComments;
+  public PartConfigParser(bool localizeValues = true) {
+    _localizeValues = localizeValues;
   }
 
   /// <summary>Parses the file as a stock <c>ConfigNode</c>.</summary>
@@ -109,107 +105,189 @@ public sealed class PartConfigParser {
     var nodesStack = new List<ConfigNode>() { new ConfigNode() };
     var node = nodesStack[0];
     var lineNum = 0;
+    var meta = new MetaBlock();
     while (lineNum < lines.Count) {
       var line = lines[lineNum];
-      if (line.Length == 0) {
-        lineNum++;
-        if (!_skipLineComments) {
-          node.AddValue("__commentField", "");
-        }
-        continue;
-      }
 
       // Check for the node section close.
       if (line.StartsWith("}", StringComparison.Ordinal)) {
+        // Flush the unclaimed block comments as a comment field
+        if (!meta.IsEmpty()) {
+          node.AddValue("__fakeField", "", meta.SetIsFakeField(true).FlushToString());
+        }
+
         nodesStack.RemoveAt(nodesStack.Count - 1);
         if (nodesStack.Count == 0) {
           ReportParseError(fileFullName, line, lineNum, message: "Unexpected node close statement");
           return null;
         }
+        var ownerNode = node;
         node = nodesStack[nodesStack.Count - 1];
+
         line = line.Substring(1).TrimStart();  // Chop-off "}".
         if (line.Length == 0) {
           lineNum++;
-        } else {
-          lines[lineNum] = line;
-        }
-        continue;
-      }
-
-      // Chop off the comment.
-      string comment = null;
-      var commentPos = line.IndexOf("//", StringComparison.Ordinal);
-      if (commentPos != -1) {
-        comment = line.Substring(commentPos + 2).TrimStart();
-        line = line.Substring(0, commentPos).TrimEnd();
-        if (line.Length == 0) {
-          lineNum++;
-          if (!_skipLineComments) {
-            node.AddValue("__commentField", comment);
-          }
           continue;
         }
-      }
-      string lineLeftOff = null;
 
-      // Try handling the simplest case: a key value pair (with an optional comment).
-      var keyValueMatch = KeyValueLineDeclRe.Match(line);
-      if (keyValueMatch.Success) {
-        // Localize the value if it starts from "#". There can be false positives.
-        var value = keyValueMatch.Groups[2].Value;
-        if (_localizeValues && LocalizationManager.IsLocalizationTag(value)) {
-          var locValue = Localizer.Format(value);
-          if (!LocalizationManager.IsLocalizationTag(comment, firstWordOnly: true)) {
-            // Simulate the localized comment if one is missing. It will be used when updating
-            // parts.
-            comment = value + " = " + locValue;
-          }
-          value = locValue;
-        }
-        node.AddValue(keyValueMatch.Groups[1].Value, value, comment);
-        line = keyValueMatch.Groups[3].Value;
-        if (string.IsNullOrEmpty(line)) {
+        // Check if it's a closing bracket comment.
+        var commentMatch = CommentDeclRe.Match(line);
+        if (commentMatch.Success) {
+          ownerNode.comment = MetaBlock.MakeFromString(ownerNode.comment)
+              .SetCloseBlockComment(commentMatch.Groups[1].Value)
+              .ToString();
           lineNum++;
+        }
+
+        // It is a new field/node that starts at the previous node end.
+        continue;
+      }
+
+      // CASE #1: Empty line.
+      if (line.Length == 0) {
+        // Accumulate it as an empty line in the block comment.
+        meta.AddLineCommentBreak();
+        lineNum++;
+        continue;
+      }
+
+      // CASE #2: Line comment.
+      var lineMatch = CommentDeclRe.Match(line);
+      if (lineMatch.Success) {
+        // Accumulate in the whole line block comment.
+        meta.AddLineComment(lineMatch.Groups[1].Value);
+        lineNum++;
+        continue;
+      }
+
+      // CASE #3: Key value pair.
+      lineMatch = KeyValueLineDeclRe.Match(line);
+      if (lineMatch.Success) {
+        // May have an in-line existingComment, make it a property of the value.
+        // Field name may have an MM command prefix.
+        // Assignment statement may have an MM operator prefix.
+        var fieldName = lineMatch.Groups[2].Value;
+        var fieldValue = lineMatch.Groups[4].Value;
+        var commentValue = lineMatch.Groups[6].Value;//FIXME use extract comment?
+
+        // Localize the value if it starts from "#". There can be false positives.
+        if (_localizeValues && LocalizationManager.IsLocalizationTag(fieldValue)) {
+          var locValue = Localizer.Format(fieldValue);
+          if (!LocalizationManager.IsLocalizationTag(commentValue, firstWordOnly: true)) {
+            // Simulate the localized existingComment if one is missing. It will be used when updating parts.
+            commentValue = fieldValue + " = " + locValue;
+          }
+          fieldValue = locValue;
+        }
+        meta.SetModuleManagerCommand(lineMatch.Groups[1].Value)
+            .SetModuleManagerOperator(lineMatch.Groups[3].Value)
+            .SetInlineComment(commentValue);
+        node.AddValue(fieldName, fieldValue, meta.FlushToString());
+        lineNum++;
+        continue;
+      }
+
+      // CASE #5: Node, that starts on the same line.
+      lineMatch = NodeSameLineDeclRe.Match(line);
+      if (lineMatch.Success) {
+        // The node declaration starts on the same line. There can be more data in the same line!
+        // Everything, which is not a existingComment, is processed as a nex line.
+        // The same line existingComment is get assigned to the node.
+        var moduleManagerCmd = lineMatch.Groups[1].Value;//FIXME
+        var nodeName = lineMatch.Groups[2].Value;
+        var lineLeftOff = lineMatch.Groups[3].Value;
+        meta.SetModuleManagerCommand(moduleManagerCmd);
+        node = node.AddNode(nodeName, meta.FlushToString());
+        nodesStack.Add(node);
+        if (lineLeftOff.Length > 0) {
+          lines[lineNum] = lineLeftOff;
         } else {
-          lines[lineNum] = line;
+          lineNum++;
         }
         continue;
       }
 
-      // At this point we know it's a subnode.
-      string nodeName = null;
-      if (NodeSameLineDeclRe.IsMatch(line)) {
-        // The node declaration starts on the same line. There can be more data in the same line!
-        var sameLineMatch = NodeSameLineDeclRe.Match(line);
-        nodeName = sameLineMatch.Groups[1].Value;
-        lineLeftOff = sameLineMatch.Groups[2].Value;
-      } else if (NodeMultiLinePrefixDeclRe.IsMatch(line)) {
-        var firstNonEmpty = lines
-            .Skip(lineNum + 1)
-            .SkipWhile(l => l.Length == 0)
-            .FirstOrDefault();
-        if (firstNonEmpty != null && firstNonEmpty.StartsWith("{", StringComparison.Ordinal)) {
-          var multiLineMatch = NodeMultiLinePrefixDeclRe.Match(line);
-          nodeName = multiLineMatch.Groups[1].Value;
-          lineNum++;
-          while (lines[lineNum].Length == 0) {
-            lineNum++;
+      // CASE #6: Node, that starts on the next line(s).
+      lineMatch = NodeMultiLinePrefixDeclRe.Match(line);
+      if (lineMatch.Success) {
+        var moduleManagerCmd= lineMatch.Groups[1].Value;//FIXME
+        var nodeName = lineMatch.Groups[2].Value;
+        var lineLeftOff = lineMatch.Groups[3].Value;
+        if (lineLeftOff != "") {
+          var commentValue = ExtractComment(lineLeftOff);
+          if (commentValue == null) {
+            ReportParseError(fileFullName, line, lineNum);
+            return null;
           }
-          lineLeftOff = lines[lineNum].Substring(1);  // Chop off "{"
+          meta.SetInlineComment(commentValue);
         }
-      }
-      if (string.IsNullOrEmpty(lineLeftOff)) {
+        meta.SetModuleManagerCommand(moduleManagerCmd);
+        var startLine = lineNum ;
         lineNum++;
-      } else {
-        lines[lineNum] = lineLeftOff.TrimStart();
+
+        // Find the opening bracket in the following lines, capturing the possible comments.
+        for (; lineNum < lines.Count; lineNum++) {
+          var skipLine = lines[lineNum];
+          if (skipLine.Length == 0) {
+            // Empty line before the opening bracket  cannot be preserved.
+            DebugEx.Warning("Ignoring empty line before opening bracket: file={0}, line={1}",
+                            fileFullName, lineNum + 1);
+            continue;
+          }
+          var commentMatch = CommentDeclRe.Match(skipLine);
+          if (commentMatch.Success) {
+            // A comment before the opening bracket  cannot be preserved.
+            DebugEx.Warning("Ignoring a comment before opening bracket: file={0}, line={1}",
+                            fileFullName, lineNum + 1);
+            continue;
+          }
+          break;  // The open bracket line candidate found.
+        }
+        if (lineNum >= lines.Count) {
+          //FIXME: can be orphan field which must be treated as... how? 
+          DebugEx.Warning(
+              "Skipping a bad multiline node: file={0}, node={1}, lines={2}-{3}. End of file reached",
+              fileFullName, nodeName, startLine, lineNum);
+          continue;
+        }
+        var bracketLine = lines[lineNum];
+        if (!bracketLine.StartsWith("{", StringComparison.Ordinal)) {
+          // Module Manager delete node/value commands are allowed to not have the opening bracket.
+          if (moduleManagerCmd == "!" || moduleManagerCmd == "-") {
+            node = node.AddNode(nodeName, meta.FlushToString());
+            nodesStack.Add(node);
+            continue;
+          }
+          DebugEx.Warning(
+              "Skipping a bad multiline node: file={0}, node={1}, lines={2}-{3}. Failed line:\n{4}",
+              fileFullName, nodeName, startLine, lineNum, bracketLine);
+          lineNum++;
+          continue;
+        }
+
+        // Unwrap the data after the opening bracket.
+        lineLeftOff = bracketLine.Substring(1).Trim();  // Chop off "{"
+        if (lineLeftOff.Length > 0) {
+          var commentMatch = CommentDeclRe.Match(lineLeftOff);
+          if (commentMatch.Success) {
+            meta.SetOpenBlockComment(commentMatch.Groups[1].Value);
+            lineNum++;  // This line is done.
+          } else {
+            // The left-off comment is a real data. Stay at the line, but resume parsing.
+            lines[lineNum] = lineLeftOff;
+          }
+        } else {
+          lineNum++;  // This line is done.
+        }
+
+        node = node.AddNode(nodeName, meta.FlushToString());
+        nodesStack.Add(node);
+        continue;
       }
-      if (nodeName == null) {
-        ReportParseError(fileFullName, line, lineNum);
-        return null;
-      }
-      var newNode = node.AddNode(nodeName, comment);
-      nodesStack.Add(newNode);
-      node = newNode;
+
+      // NOT A CASE! We must never end up here.
+      ReportParseError(fileFullName, line, lineNum);
+      return null;
     }
 
     if (nodesStack.Count > 1) {
@@ -231,6 +309,15 @@ public sealed class PartConfigParser {
                     configFile, lineNum, message, lineContent);
     }
   }
+
+  /// <summary>Extracts the actual comment body from the escaped string.</summary>
+  static string ExtractComment(string rawString) {
+    if (string.IsNullOrEmpty(rawString)) {
+      return "";
+    }
+    var match = CommentDeclRe.Match(rawString);
+    return match.Success ? match.Groups[1].Value : null;
+  } 
   #endregion
 }
 

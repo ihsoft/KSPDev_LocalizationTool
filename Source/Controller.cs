@@ -598,13 +598,13 @@ sealed class Controller : MonoBehaviour, IHasGUI {
         if (!LocalizationManager.IsLocalizationTag(field.value)) {
           // Replace a non-localized value by a tag.
           var locTag = Extractor.MakePartFieldLocalizationTag(part.name, fieldName);
-          field.comment = locTag + " = " + field.value;
+          field.comment = new MetaBlock().SetInlineComment(locTag + " = " + field.value).ToString();
           field.value = locTag;
         } else {
           string locValue;
           if (Localizer.TryGetStringByTag(field.value, out locValue)) {
             // Update comment to the latest lang file.
-            field.comment = field.value + " = " + locValue;
+            field.comment = new MetaBlock().SetInlineComment(field.value + " = " + locValue).ToString();
           }
         }
       }
@@ -669,9 +669,13 @@ sealed class Controller : MonoBehaviour, IHasGUI {
           && string.IsNullOrEmpty(field.comment)) {
         // Make a default representation by adding EN-US strings as a comment.
         if (defaultLocaleLookup.Keys.Contains(field.value)) {
-          field.comment = field.value + " = " + defaultLocaleLookup[field.value];
+          field.comment = new MetaBlock()
+              .SetInlineComment(field.value + " = " + defaultLocaleLookup[field.value])
+              .ToString();
         } else {
-          field.comment = field.value + " is NOT found in EN-US locale!";
+          field.comment = new MetaBlock()
+              .SetInlineComment(field.value + " is NOT found in EN-US locale!")
+              .ToString();
         }
       }
     }

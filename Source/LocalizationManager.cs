@@ -251,8 +251,8 @@ static class LocalizationManager {
       DebugEx.Error("Skip part {0} since it doesn't have a config", partInfo.name);
       return null;
     }
-    var config = ConfigStore.LoadConfigWithComments(
-        partInfo.configFileFullName, skipLineComments: true);
+
+    var config = ConfigStore.LoadConfigWithComments(partInfo.configFileFullName);
     if (config == null || config.nodes.Count == 0) {
       DebugEx.Error("Config node is invalid for the part {0}\n{1}", partInfo.name, config);
       return null;

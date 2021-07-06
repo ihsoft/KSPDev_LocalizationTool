@@ -10,6 +10,7 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
+using UnityEngine;
 
 // ReSharper disable once CheckNamespace
 namespace KSPDev.LocalizationTool {
@@ -145,18 +146,10 @@ static class ConfigStore {
   /// Tells if the field values should be localized. If not, then they are returned from the file
   /// "as-is".
   /// </param>
-  /// <param name="skipLineComments">
-  /// Tells to not emit the "__commentField" fields for the standalone comments. It doesn't affect
-  /// the in-line comments; they are always assigned to the related value or sub-node.
-  /// </param>
   /// <returns>A loaded config node.</returns>
   /// <seealso cref="PartConfigParser"/>
-  public static ConfigNode LoadConfigWithComments(string fileFullName,
-                                                  bool localizeValues = true,
-                                                  bool skipLineComments = false) {
-    var parser = new PartConfigParser(
-        localizeValues: localizeValues,
-        skipLineComments: skipLineComments);
+  public static ConfigNode LoadConfigWithComments(string fileFullName, bool localizeValues = true) {
+    var parser = new PartConfigParser(localizeValues: localizeValues);
     return parser.ParseFileAsNode(fileFullName);
   }
 
@@ -179,6 +172,7 @@ static class ConfigStore {
     File.WriteAllText(path, content.ToString());
   }
 
+  #region Local utility methods
   /// <summary>Recursively collects and serializes the fields in the nodes.</summary>
   /// <remarks>
   /// Supports special field name <c>__commentField</c> to output the line comments. If the line
@@ -189,26 +183,34 @@ static class ConfigStore {
   /// <param name="indentation"></param>
   static void SerializeNode(StringBuilder res, ConfigNode node, int indentation) {
     var indentSpaces = new string('\t', indentation);
-    res.AppendLine(indentSpaces + node.name);
-    res.AppendLine(indentSpaces + "{");
+    var nodeMeta = MetaBlock.MakeFromString(node.comment);
+    var nodeOpenText = indentSpaces + node.name;
+    if (nodeMeta.inlineComment != null) {
+      nodeOpenText += " // " + nodeMeta.inlineComment;  
+    }
+    res.AppendLine(nodeOpenText);
+    var openBlockText = indentSpaces + "{";
+    if (nodeMeta.openBlockComment != null) {
+      openBlockText += " // " + nodeMeta.openBlockComment;
+    }
+    res.AppendLine(openBlockText);
     indentation++;
+    var indentBlock = indentSpaces + '\t'; 
 
-    // Skip the trailing empty lines, so that the modules section is not
-    var fields = node.values.Cast<ConfigNode.Value>()
-        .Reverse()
-        .SkipWhile(f => f.name == "__commentField" && f.value == "")
-        .Reverse();
+    var fields = node.values.Cast<ConfigNode.Value>();
     foreach (var field in fields) {
-      if (field.name == "__commentField") {
-        if (field.value.Length == 0) {
+      var meta = MetaBlock.MakeFromString(field.comment);
+      foreach (var line in meta.trailingLines) {
+        if (line.isEmptyLine) {
           res.AppendLine("");
         } else {
-          res.AppendLine(new string('\t', indentation) + "// " + field.value);
+          res.AppendLine(indentBlock + "// " + line.value);
         }
-        continue;
       }
-      res.AppendLine(
-          MakeConfigNodeLine(indentation, field.name, field.value, comment: field.comment));
+      if (meta.isFakeField) {
+        continue; // No actual field is needed.
+      }
+      res.AppendLine(MakeConfigNodeLine(indentation, field.name, field.value, comment: meta.inlineComment));
     }
     if (node.CountNodes > 0) {
       res.AppendLine("");
@@ -216,7 +218,11 @@ static class ConfigStore {
         SerializeNode(res, childNode, indentation);
       }
     }
-    res.AppendLine(indentSpaces + "}");
+    var nodeCloseText = indentSpaces + "}";
+    if (nodeMeta.closeBlockComment != null) {
+      nodeCloseText += " // " + nodeMeta.closeBlockComment;  
+    }
+    res.AppendLine(nodeCloseText);
   }
 
   /// <summary>Formats a comment with the proper indentation.</summary>
@@ -301,6 +307,7 @@ static class ConfigStore {
         ? "\\u" + ((int)c).ToString("x4")
         : "" + c;
   }
+  #endregion
 }
 
 }  // namespace
