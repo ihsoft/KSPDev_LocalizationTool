@@ -72,6 +72,13 @@ public class MetaBlock {
   /// </remarks>
   /// <value>The MM operator like <c>+</c>, <c>*</c>, <c>!</c>, etc.</value>
   public string mmOperator { get; private set; }
+
+  /// <summary>Tells if the actual field must not be actually emitted due it's artificial.</summary>
+  /// <remarks>
+  /// The meta block properties that attribute the field itself (as the inline comment) make no sense in this mode.
+  /// </remarks>
+  /// <value><c>true</c> if the field must not be actually written into the output.</value>
+  public bool isFakeField { get; private set; }
   #endregion
 
   #region Serialization tags
@@ -80,6 +87,7 @@ public class MetaBlock {
   const string MetaInlineCommentPrefix = "InlineComment:";
   const string MetaOpenBlockCommentPrefix = "OpenBlockComment:";
   const string MetaCloseBlockCommentPrefix = "CloseBlockComment:";
+  const string MetaIsFakeField = "IsFakeField";
   const string MetaModuleMangerCmdPrefix = "MMCmdComment:";
   const string MetaModuleMangerArgsPrefix = "MMArgsComment:";
   const string MetaModuleMangerOpPrefix = "MMOpComment:";
@@ -135,6 +143,13 @@ public class MetaBlock {
     if (!string.IsNullOrEmpty(newComment)) {
       closeBlockComment = newComment;
     }
+    return this;
+  }
+
+  /// <summary>Sets the fake field state.</summary>
+  /// <returns>The <see cref="MetaBlock"/> instance. It lets chaining the setters.</returns>
+  public MetaBlock SetIsFakeField(bool state) {
+    isFakeField = state;
     return this;
   }
 
@@ -208,6 +223,7 @@ public class MetaBlock {
     inlineComment = null;
     openBlockComment = null;
     closeBlockComment = null;
+    isFakeField = false;
     mmCommand = null;
     mmOperator = null;
   }
@@ -239,6 +255,8 @@ public class MetaBlock {
         mmArguments = line.Substring(MetaModuleMangerArgsPrefix.Length);
       } else if (line.StartsWith(MetaModuleMangerOpPrefix)) {
         mmOperator = line.Substring(MetaModuleMangerOpPrefix.Length);
+      } else if (line == MetaIsFakeField) {
+        isFakeField = true;
       } else {
         DebugEx.Error("Cannot parse MetaBlock: {0}", line);
       }
@@ -265,6 +283,9 @@ public class MetaBlock {
     }
     if (closeBlockComment != null) {
       res.Add(MetaCloseBlockCommentPrefix + closeBlockComment);
+    }
+    if (isFakeField) {
+      res.Add(MetaIsFakeField);
     }
     if (mmCommand != null) {
       res.Add(MetaModuleMangerCmdPrefix + mmCommand);
