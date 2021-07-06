@@ -587,6 +587,10 @@ sealed class Controller : MonoBehaviour, IHasGUI {
 
       // Make the default localizable placeholders for the known part fields.
       var partNode = config.GetNode("PART");
+      if (partNode == null) {
+        DebugEx.Error("Skipping part as it's config cannot be recognized: {0}", part.configFileFullName);
+        continue;
+      }
       foreach (var fieldName in Extractor.LocalizablePartFields) {
         var field = partNode.values.Cast<ConfigNode.Value>()
             .FirstOrDefault(x => x.name == fieldName);
