@@ -416,8 +416,7 @@ sealed class Controller : MonoBehaviour, IHasGUI {
   /// <summary>Saves the strings for the selected entities into a new file.</summary>
   /// <param name="parts">The parts to export the strings from.</param>
   /// <param name="assemblies">The mod assemblies to export the strings from.</param>
-  void GuiActionExportStrings(IEnumerable<PartsRecord> parts,
-                              IEnumerable<AssemblyRecord> assemblies) {
+  void GuiActionExportStrings(IEnumerable<PartsRecord> parts, IEnumerable<AssemblyRecord> assemblies) {
     var partsLocalizations = parts
         .SelectMany(x => x.parts)
         .Select(Extractor.EmitItemsForPart)
