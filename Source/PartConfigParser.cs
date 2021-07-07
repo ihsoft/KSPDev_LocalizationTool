@@ -137,9 +137,9 @@ public sealed class PartConfigParser {
               .SetCloseBlockComment(commentMatch.Groups[1].Value)
               .ToString();
           lineNum++;
+        } else {
+          lines[lineNum] = line;  // There's something left in the line, re-try it.
         }
-
-        // It is a new field/node that starts at the previous node end.
         continue;
       }
 
