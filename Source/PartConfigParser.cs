@@ -1,6 +1,7 @@
 ﻿// Kerbal Development tools.
 // Author: igor.zavoychinskiy@gmail.com
 // This software is distributed under Public domain license.
+
 using KSP.Localization;
 using KSPDev.LogUtils;
 using System;
@@ -40,7 +41,7 @@ public sealed class PartConfigParser {
   /// }
   /// </code>
   /// </remarks>
-  static readonly Regex NodeMultiLinePrefixDeclRe = new Regex(@"^\s*(\W?)(\S+)\s*(.*?)\s*?$");
+  static readonly Regex NodeMultiLinePrefixDeclRe = new(@"^\s*(\W?)(\S+)\s*(.*?)\s*?$");
 
   /// <summary>Parses a beginning subnode declaration that starts on the same line.</summary>
   /// <remarks>
@@ -57,7 +58,7 @@ public sealed class PartConfigParser {
   /// MODULE { foo = bar }
   /// </code>
   /// </remarks>
-  static readonly Regex NodeSameLineDeclRe = new Regex(@"^\s*(\W?)(\S+)\s*{\s*(.*?)\s*$");
+  static readonly Regex NodeSameLineDeclRe = new(@"^\s*(\W?)(\S+)\s*{\s*(.*?)\s*$");
 
   /// <summary>Parses a simple key/value pair.</summary>
   /// <remarks>
@@ -72,10 +73,12 @@ public sealed class PartConfigParser {
   /// foo = {} bar = {} FIXME
   /// </code>
   /// </remarks>
-  static readonly Regex KeyValueLineDeclRe = new Regex(@"^\s*(\W?)(\S+)\s*(\W?)=\s*(.*?)\s*(//\s*(.*))?$");
+  static readonly Regex KeyValueLineDeclRe = new(@"^\s*(\W?)(\S+)\s*(\W?)=\s*(.*?)\s*(//\s*(.*))?$");
+
+  static readonly Regex MmKeyDeleteCommandDeclRe = new(@"^\s*([\-!]{1})(\S+)\s*(//.*)?$");
 
   /// <summary>Parses a regular comment line.</summary>
-  static readonly Regex CommentDeclRe = new Regex(@"^\s*//\s*(.*?)\s*?$");
+  static readonly Regex CommentDeclRe = new(@"^\s*//\s*(.*?)\s*?$");
   
   /// <summary>Creates a parser with the desired options.</summary>
   /// <param name="localizeValues">
@@ -230,15 +233,15 @@ public sealed class PartConfigParser {
           var skipLine = lines[lineNum];
           if (skipLine.Length == 0) {
             // Empty line before the opening bracket  cannot be preserved.
-            DebugEx.Warning("Ignoring empty line before opening bracket: file={0}, line={1}",
-                            fileFullName, lineNum + 1);
+            DebugEx.Warning(
+                "Ignoring empty line before opening bracket: file={0}, line={1}", fileFullName, lineNum + 1);
             continue;
           }
           var commentMatch = CommentDeclRe.Match(skipLine);
           if (commentMatch.Success) {
-            // A comment before the opening bracket  cannot be preserved.
-            DebugEx.Warning("Ignoring a comment before opening bracket: file={0}, line={1}",
-                            fileFullName, lineNum + 1);
+            // A comment before the opening bracket cannot be preserved.
+            DebugEx.Warning(
+                "Ignoring a comment before opening bracket: file={0}, line={1}", fileFullName, lineNum + 1);
             continue;
           }
           break;  // The open bracket line candidate found.
