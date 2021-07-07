@@ -249,8 +249,8 @@ public sealed class PartConfigParser {
         if (lineNum >= lines.Count) {
           //FIXME: can be orphan field which must be treated as... how? 
           DebugEx.Warning(
-              "Skipping a bad multiline node: file={0}, node={1}, lines={2}-{3}. End of file reached",
-              fileFullName, nodeName, startLine, lineNum);
+              "Skipping a bad multiline node: file={0}, fieldName={1}, lines={2}-{3}. End of file reached",
+              fileFullName, nodeName, startLine + 1, lineNum + 1);
           continue;
         }
         var bracketLine = lines[lineNum];
@@ -261,10 +261,8 @@ public sealed class PartConfigParser {
             nodesStack.Add(node);
             continue;
           }
-          DebugEx.Warning(
-              "Skipping a bad multiline node: file={0}, node={1}, lines={2}-{3}. Failed line:\n{4}",
-              fileFullName, nodeName, startLine, lineNum, bracketLine);
-          lineNum++;
+          DebugEx.Warning("Skipping field/node without value: file={0}, fieldName={1}, line={2}",
+                          fileFullName, nodeName, startLine);
           continue;
         }
 
