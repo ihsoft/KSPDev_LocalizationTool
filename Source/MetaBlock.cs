@@ -33,7 +33,7 @@ public class MetaBlock {
   /// Check the type of the line! Keep in mind that the values are <i>trimmed</i>. I.e. you should expect that the
   /// leading and trailing whitespaces were removed.
   /// </remarks>
-  /// <value>The comment or empty lines that go <i>before</i> the entity.</value>
+  /// <value>The comments or empty lines that go <i>before</i> the entity.</value>
   public readonly List<TrailingLine> trailingLines = new();
 
   /// <summary>The comment that follows exactly after the key/value assignment.</summary>
@@ -41,20 +41,22 @@ public class MetaBlock {
   /// This is the actual comment text, trimmed at the both sides. The leading commenting escape sequence (<c>//</c>) is
   /// not included.
   /// </remarks>
-  /// <value>The comment that follow on the same line after a <c>//</c> escape sequence.</value>
+  /// <value>
+  /// The comment that follow on the same line after a <c>//</c> escape sequence or <c>null</c> if nothing set.
+  /// </value>
   public string inlineComment { get; private set; }
 
   /// <summary>The comment that follows immediately after the opening brace of a node.</summary>
-  /// <value>The comment after the opening bracket symbol.</value>
+  /// <value>The comment after the opening bracket symbol or <c>null</c> if nothing set.</value>
   public string openBlockComment { get; private set; }
 
   /// <summary>The comment that follows immediately after the closing brace of a node.</summary>
-  /// <value>The comment after the closing bracket symbol.</value>
+  /// <value>The comment after the closing bracket symbol or <c>null</c> if nothing set.</value>
   public string closeBlockComment { get; private set; }
 
   /// <summary>The Module Manager command.</summary>
   /// <remarks>It's a prefix symbol to the field name aor a block starter (e.g. <c>PART</c>).</remarks>
-  /// <value>The MM command symbol like <c>@</c> or <c>%</c>.</value>
+  /// <value>The MM command symbol like <c>@</c> or <c>%</c> or <c>null</c> if nothing set.</value>
   public string mmCommand { get; private set; }
 
   /// <summary>The Module Manager command arguments.</summary>
@@ -62,7 +64,7 @@ public class MetaBlock {
   /// See MM Wiki for more details. In nutshell, it's everything that goes after the actual field name or the block
   /// starter term.
   /// </remarks>
-  /// <value>The MM command arguments. E.g. <c>:NEEDS[KIS]</c> or <c>,*</c>.</value>
+  /// <value>The MM command arguments like <c>:NEEDS[KIS]</c> or <c>,*</c> or <c>null</c> if nothing set.</value>
   public string mmArguments { get; private set; }
 
   /// <summary>The Module Manager assignment operator.</summary>
@@ -70,7 +72,7 @@ public class MetaBlock {
   /// It's a prefix symbol to the equals sign in the key/value declaration. E.g. if it was <c>+=</c> in the CFG, then it
   /// will be <c>+</c> here.
   /// </remarks>
-  /// <value>The MM operator like <c>+</c>, <c>*</c>, <c>!</c>, etc.</value>
+  /// <value>The MM operator like <c>+</c>, <c>*</c>, <c>!</c> or <c>null</c> if nothing set.</value>
   public string mmOperator { get; private set; }
 
   /// <summary>Tells if the actual field must not be actually emitted due it's artificial.</summary>
