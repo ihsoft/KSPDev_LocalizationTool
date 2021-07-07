@@ -218,8 +218,11 @@ static class LocalizationManager {
   /// The values in the nodes must be in the same order. The <paramref name="toNode"/> is allowed
   /// to have more values, the extra values will be silently skipped.
   /// </remarks>
-  /// <param name="toNode">The node to merge value to.</param>
-  /// <param name="fromNode">The node to merge values from. It must have comments loaded.</param>
+  /// <param name="toNode">The node to merge value to. It's a regular node from the part prefab.</param>
+  /// <param name="fromNode">
+  /// The node to merge values from. It must have comments loaded. Note, that the comments are encoded via the
+  /// <see cref="MetaBlock"/>.
+  /// </param>
   static void MergeLocalizableValues(ConfigNode toNode, ConfigNode fromNode) {
     for (var i = 0; i < fromNode.values.Count && i < toNode.values.Count; i++) {
       var fromValue = fromNode.values[i];
@@ -228,9 +231,10 @@ static class LocalizationManager {
         DebugEx.Error("Cannot merge config nodes.\nTO:\n{0}\nFROM:\n{1}", toNode, fromNode);
         return;
       }
-      if (IsLocalizationTag(fromValue.comment, firstWordOnly: true)) {
+      var metaBlock = MetaBlock.MakeFromString(fromValue.comment);
+      if (IsLocalizationTag(metaBlock.inlineComment, firstWordOnly: true)) {
         toValue.value = fromValue.value;
-        toValue.comment = fromValue.comment;
+        toValue.comment = metaBlock.inlineComment;
       }
     }
     for (var i = 0; i < fromNode.nodes.Count && i < toNode.nodes.Count; i++) {
