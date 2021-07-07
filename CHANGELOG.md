@@ -1,4 +1,5 @@
 # 1.10 (pre-release):
+* [Change] Don't show `KSPDev Utils` mod in the selection list.
 * [Fix #16] Bad escaping in the localization makes the tool crashing.
 * [Fix #17] Support the stock fields/events/actions GUI strings reloading.
 * [Enhancement] Support the game's UI scale.

@@ -478,6 +478,7 @@ sealed class Controller : MonoBehaviour, IHasGUI {
         AssemblyLoader.loadedAssemblies
             .Where(x =>
                  x.url.StartsWith(prefix, StringComparison.OrdinalIgnoreCase)
+                 && !x.name.Contains("KSPDev_Utils")
                  && KspPaths.MakeRelativePathToGameData(x.assembly.Location)
                      .StartsWith(prefix, StringComparison.OrdinalIgnoreCase)
                  && (_allowNoModulesAssemblies || x.types.Count > 0))
