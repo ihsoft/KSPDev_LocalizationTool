@@ -306,9 +306,8 @@ sealed class Controller : MonoBehaviour, IHasGUI {
       }
       using (new GuiMatrixScope()) {
         _guiScale.UpdateMatrix();
-        _windowRect = GUILayout.Window(
-            GetInstanceID(), _windowRect, MakeConsoleWindow,
-            MainWindowTitleTxt.Format(GetType().Assembly.GetName().Version));
+        _windowRect = GUILayout.Window(GetInstanceID(), _windowRect, MakeConsoleWindow,
+                                       MainWindowTitleTxt.Format(GetType().Assembly.GetName().Version));
       }
     }
   }
@@ -338,8 +337,7 @@ sealed class Controller : MonoBehaviour, IHasGUI {
     }
 
     GUI.changed = false;
-    _allowNoModulesAssemblies =
-        GUILayout.Toggle(_allowNoModulesAssemblies, AssembliesWithoutModulesToggleTxt);
+    _allowNoModulesAssemblies = GUILayout.Toggle(_allowNoModulesAssemblies, AssembliesWithoutModulesToggleTxt);
     if (GUI.changed) {
       _guiActions.Add(() => GuiActionUpdateTargets(_lookupPrefix));
     }
@@ -362,8 +360,7 @@ sealed class Controller : MonoBehaviour, IHasGUI {
     if (selectedPartsCount > 0
         || _allowNoModulesAssemblies && selectedAssemblies.Any()
         || !_allowNoModulesAssemblies && selectedModulesCount > 0) {
-      var title = ExportBtnTxt.Format(selectedParts.Sum(x => x.parts.Count),
-                                      selectedAssemblies.Length);
+      var title = ExportBtnTxt.Format(selectedParts.Sum(x => x.parts.Count), selectedAssemblies.Length);
       if (GUILayout.Button(title)) {
         GuiActionExportStrings(selectedParts, selectedAssemblies);
       }
@@ -387,11 +384,9 @@ sealed class Controller : MonoBehaviour, IHasGUI {
 
     // Strings reload controls.
     if (selectedLacsCount > 0) {
-      var title = RefreshBtnTxt.Format(
-          selectedConfigs.Length, selectedParts.Sum(x => x.parts.Count));
+      var title = RefreshBtnTxt.Format(selectedConfigs.Length, selectedParts.Sum(x => x.parts.Count));
       if (GUILayout.Button(title)) {
-        StartCoroutine(ExecuteLongAction(
-            () => GuiActionRefreshStrings(selectedConfigs, selectedParts)));
+        StartCoroutine(ExecuteLongAction(() => GuiActionRefreshStrings(selectedConfigs, selectedParts)));
       }
     } else {
       GUI.enabled = false;
@@ -407,8 +402,7 @@ sealed class Controller : MonoBehaviour, IHasGUI {
     using (new GUILayout.HorizontalScope(GUI.skin.box)) {
       GUILayout.Label(CurrentLanguageFieldCaptionTxt, _guiNoWrapLabel);
       GUILayout.FlexibleSpace();
-      _selectedLanguageControl.RenderControl(
-          _guiActions, GUIStyle.none, new[] {GUILayout.Width(100)});
+      _selectedLanguageControl.RenderControl(_guiActions, GUIStyle.none, new[] {GUILayout.Width(100)});
     }
 
     GUI.DragWindow();
@@ -587,8 +581,7 @@ sealed class Controller : MonoBehaviour, IHasGUI {
     var exportParts = parts.SelectMany(x => x.parts).ToArray();
     var exportPath = KspPaths.GetModsDataFilePath(this, "Parts/");
     foreach (var part in exportParts) {
-      var config = ConfigStore.LoadConfigWithComments(
-          part.configFileFullName, localizeValues: false);
+      var config = ConfigStore.LoadConfigWithComments(part.configFileFullName, localizeValues: false);
       if (config == null) {
         DebugEx.Error("Cannot load config file for part {0}: {1}", part, part.configFileFullName);
         continue;
