@@ -606,8 +606,7 @@ sealed class Controller : MonoBehaviour, IHasGUI {
           field.comment = new MetaBlock().SetInlineComment(locTag + " = " + field.value).ToString();
           field.value = locTag;
         } else {
-          string locValue;
-          if (Localizer.TryGetStringByTag(field.value, out locValue)) {
+          if (defaultLocaleLookup.TryGetValue(field.value, out var locValue)) {
             // Update comment to the latest lang file.
             field.comment = new MetaBlock().SetInlineComment(field.value + " = " + locValue).ToString();
           }
