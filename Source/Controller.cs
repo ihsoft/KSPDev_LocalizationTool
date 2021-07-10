@@ -242,19 +242,27 @@ sealed class Controller : MonoBehaviour, IHasGUI {
   Dictionary<string, string> defaultLocaleLookup {
     get {
       if (_defLocaleVersion != LocalizableMessage.systemLocVersion) {
-        _defLocaleVersion = LocalizableMessage.systemLocVersion;
-        _defaultLocaleLookup = GameDatabase.Instance.GetConfigs("Localization")
+        var allLookups = GameDatabase.Instance.GetConfigs("Localization")
             .SelectMany(n => n.config.nodes.Cast<ConfigNode>())
             .Where(x => x.name == "en-us")
-            .SelectMany(v => v.values.Cast<ConfigNode.Value>())
-            .ToDictionary(r => r.name, r => r.value);
-        DebugEx.Warning(
-            "Default locale strings reloaded: {0} entries updated.", defaultLocaleLookup.Count);
+            .SelectMany(v => v.values.Cast<ConfigNode.Value>());
+        // Not using "ToDictionary" since there can be duplicates. They need to be detected and reported. 
+        _defaultLocaleLookup.Clear();
+        foreach (var lookup in allLookups) {
+          if (_defaultLocaleLookup.Keys.Contains(lookup.name) && _defaultLocaleLookup[lookup.name] != lookup.value) {
+            DebugEx.Warning("Spotted a 'en-us' string duplicate: key={0}, storedValue={1}, skippedValue={2}",
+                            lookup.name, _defaultLocaleLookup[lookup.name], lookup.value);
+            continue;
+          }
+          _defaultLocaleLookup[lookup.name] = lookup.value;
+        }
+        DebugEx.Info("Default locale strings reloaded: {0} entries updated.", _defaultLocaleLookup.Count);
+        _defLocaleVersion = LocalizableMessage.systemLocVersion;
       }
       return _defaultLocaleLookup;
     }
   }
-  Dictionary<string, string> _defaultLocaleLookup;
+  readonly Dictionary<string, string> _defaultLocaleLookup = new();
   #endregion
 
   #region MonoBehaviour overrides 
@@ -512,7 +520,7 @@ sealed class Controller : MonoBehaviour, IHasGUI {
   void GuiActionRefreshStrings(IEnumerable<ConfigRecord> configs,
                                IEnumerable<PartsRecord> parts) {
     DebugEx.Warning("Update the selected part prefabs and strings due to the settings change");
-    _defaultLocaleLookup = null;
+    _defLocaleVersion = -1;
 
     // Update the game's database with a fresh content from disk.
     configs.ToList().ForEach(
@@ -547,7 +555,7 @@ sealed class Controller : MonoBehaviour, IHasGUI {
   /// <remarks>This methods forces global language update.</remarks>
   void GuiActionUpdateAllParts() {
     DebugEx.Warning("Update all the part prefabs and strings due to the settings change");
-    _defaultLocaleLookup = null;
+    _defLocaleVersion = -1;
 
     // Reload all the localization files.
     GameDatabase.Instance.GetConfigs("Localization")
