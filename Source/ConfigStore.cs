@@ -210,7 +210,7 @@ static class ConfigStore {
       if (meta.isFakeField) {
         continue; // No actual field is needed.
       }
-      res.AppendLine(MakeConfigNodeLine(indentation, field.name, field.value, comment: meta.inlineComment));
+      res.AppendLine(MakeConfigNodeLine(indentation, field.name, field.value, meta: meta));
     }
     if (node.CountNodes > 0) {
       res.AppendLine("");
@@ -277,11 +277,18 @@ static class ConfigStore {
   /// <param name="value">
   /// The value string. It can contain multiple lines separated by a "\n" symbols.
   /// </param>
-  /// <param name="comment">The optional comment to add to the right of the field value.</param>
+  /// <param name="meta">
+  /// The meta block of this field. Only the applicable properties will be used. If set to <c>null</c>, then no
+  /// comments/MM logic be dispatched.
+  /// </param>
   /// <returns>A properly formatted line.</returns>
-  static string MakeConfigNodeLine(int indentation, string key, string value, string comment = null) {
-    return new string('\t', indentation) + key + " = " + EscapeValue(value)
-        + (comment != null ? " // " + comment : "");
+  static string MakeConfigNodeLine(int indentation, string key, string value, MetaBlock meta = null) {
+    meta ??= new MetaBlock();
+    var fieldName = (meta.mmCommand ?? "") + key + (meta.mmArguments ?? "");
+    var operand = (meta.mmOperator ?? "") + "=";
+    var fieldValue = EscapeValue(value);
+    var comment = (meta.inlineComment != null ? " // " + meta.inlineComment : "");
+    return new string('\t', indentation) + fieldName + " " + operand + " " + fieldValue + comment;
   }
 
   /// <summary>Escapes special symbols so that they don't break the formatting.</summary>
