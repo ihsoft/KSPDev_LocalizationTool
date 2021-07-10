@@ -357,46 +357,45 @@ sealed class Controller : MonoBehaviour, IHasGUI {
     var selectedConfigs = _targets.OfType<ConfigRecord>().Where(x => x.selected).ToArray();
 
     // Strings export controls.
-    if (selectedPartsCount > 0
+    var stringExportControl = selectedPartsCount > 0
         || _allowNoModulesAssemblies && selectedAssemblies.Any()
-        || !_allowNoModulesAssemblies && selectedModulesCount > 0) {
-      var title = ExportBtnTxt.Format(selectedParts.Sum(x => x.parts.Count), selectedAssemblies.Length);
+        || !_allowNoModulesAssemblies && selectedModulesCount > 0;
+    using (new GuiEnabledStateScope(stringExportControl)) {
+      var title = stringExportControl
+          ? ExportBtnTxt.Format(selectedParts.Sum(x => x.parts.Count), selectedAssemblies.Length)
+          : MakeSelectionsForExportTxt.Format();
       if (GUILayout.Button(title)) {
-        GuiActionExportStrings(selectedParts, selectedAssemblies);
+        _guiActions.Add(() => GuiActionExportStrings(selectedParts, selectedAssemblies));
       }
-    } else {
-      GUI.enabled = false;
-      GUILayout.Button(MakeSelectionsForExportTxt);
-      GUI.enabled = true;
     }
 
     // Parts export controls.
-    if (selectedPartsCount > 0) {
-      var title = PatchPartsBtnTxt.Format(selectedParts.Sum(x => x.parts.Count));
+    var patchPartsControl = selectedPartsCount > 0;
+    using (new GuiEnabledStateScope(patchPartsControl)) {
+      var title = patchPartsControl
+          ? PatchPartsBtnTxt.Format(selectedParts.Sum(x => x.parts.Count))
+          : MakeSelectionsForPatchTxt.Format();
       if (GUILayout.Button(title)) {
-        GuiExportPartConfigs(selectedParts);
+        _guiActions.Add(() => GuiExportPartConfigs(selectedParts));
       }
-    } else {
-      GUI.enabled = false;
-      GUILayout.Button(MakeSelectionsForPatchTxt);
-      GUI.enabled = true;
     }
 
     // Strings reload controls.
-    if (selectedLacsCount > 0) {
-      var title = RefreshBtnTxt.Format(selectedConfigs.Length, selectedParts.Sum(x => x.parts.Count));
+    var reloadsControl = selectedLacsCount > 0;
+    using (new GuiEnabledStateScope(reloadsControl)) {
+      var title = reloadsControl
+          ? RefreshBtnTxt.Format(selectedConfigs.Length, selectedParts.Sum(x => x.parts.Count))
+          : MakeSelectionsForReloadTxt.Format();
       if (GUILayout.Button(title)) {
-        StartCoroutine(ExecuteLongAction(() => GuiActionRefreshStrings(selectedConfigs, selectedParts)));
+        _guiActions.Add(
+            () => StartCoroutine(ExecuteLongAction(() => GuiActionRefreshStrings(selectedConfigs, selectedParts))));
       }
-    } else {
-      GUI.enabled = false;
-      GUILayout.Button(MakeSelectionsForReloadTxt);
-      GUI.enabled = true;
     }
 
     // Parts DB update controls.
     if (GUILayout.Button(UpdateAllPartsTxt)) {
-      StartCoroutine(ExecuteLongAction(GuiActionUpdateAllParts));
+      _guiActions.Add(() => StartCoroutine(ExecuteLongAction(GuiActionUpdateAllParts)));
+    }
     }
 
     using (new GUILayout.HorizontalScope(GUI.skin.box)) {
