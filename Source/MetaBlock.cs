@@ -202,6 +202,17 @@ public class MetaBlock {
     return meta;
   }
 
+  /// <summary>Resets the block to it's default state (as on construction).</summary>
+  public void Reset() {
+    trailingLines.Clear();
+    inlineComment = null;
+    openBlockComment = null;
+    closeBlockComment = null;
+    isFakeField = false;
+    mmCommand = null;
+    mmOperator = null;
+    mmArguments = null;
+  }
   /// <summary>Captures the current state of the block and resets the instance.</summary>
   /// <returns>The serialized state of the block.</returns>
   /// <seealso cref="Reset"/>
@@ -219,18 +230,6 @@ public class MetaBlock {
   #endregion
 
   #region Local utility methods
-  /// <summary>Resets the block to it's default state (as on construction).</summary>
-  void Reset() {
-    trailingLines.Clear();
-    inlineComment = null;
-    openBlockComment = null;
-    closeBlockComment = null;
-    isFakeField = false;
-    mmCommand = null;
-    mmOperator = null;
-    mmArguments = null;
-  }
-
   /// <summary>Restores the block state form a serialized string.</summary>
   void ParseFromString(string input) {
     Reset();

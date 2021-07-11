@@ -239,10 +239,9 @@ public sealed class PartConfigParser {
         meta.SetModuleManagerCommand(moduleManagerCmd);
         meta.SetModuleManagerArguments(moduleManagerArgs);
         var startLine = lineNum ;
-        lineNum++;
 
         // Find the opening bracket in the following lines, capturing the possible comments.
-        for (; lineNum < lines.Count; lineNum++) {
+        for (lineNum++; lineNum < lines.Count; lineNum++) {
           var skipLine = lines[lineNum];
           if (skipLine.Length == 0) {
             // Empty line before the opening bracket  cannot be preserved.
@@ -259,22 +258,11 @@ public sealed class PartConfigParser {
           }
           break;  // The open bracket line candidate found.
         }
-        if (lineNum >= lines.Count) {
-          DebugEx.Warning(
-              "Skipping a bad multiline node: file={0}, fieldName={1}, lines={2}-{3}. End of file reached",
-              fileFullName, nodeName, startLine + 1, lineNum + 1);
-          continue;
-        }
-        var bracketLine = lines[lineNum];
+        var bracketLine = lineNum < lines.Count ? lines[lineNum] : "";
         if (!bracketLine.StartsWith("{", StringComparison.Ordinal)) {
-          // Module Manager delete node/value commands are allowed to not have the opening bracket.
-          if (moduleManagerCmd == "!" || moduleManagerCmd == "-") {
-            node = node.AddNode(nodeName, meta.FlushToString());
-            nodesStack.Add(node);
-            continue;
-          }
-          DebugEx.Warning("Skipping field/node without value: file={0}, fieldName={1}, line={2}",
-                          fileFullName, nodeName, startLine);
+          DebugEx.Warning(
+              "Skipping node without body: file={0}, fieldName={1}, line={2}", fileFullName, nodeName, startLine + 1);
+          meta.Reset();
           continue;
         }
 
