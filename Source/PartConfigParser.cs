@@ -31,53 +31,46 @@ public sealed class PartConfigParser {
 
   /// <summary>Parses a beginning of the multiline subnode declaration.</summary>
   /// <remarks>
-  /// <para>
-  /// It detects the staring of the block and returns the key (subnode name) as <c>$1</c>:
-  /// </para>
-  /// <code>
+  /// It detects the staring of the block and returns the key (subnode name) as <c>$2</c>.
+  /// </remarks>
+  /// <example>
+  /// <code><![CDATA[
   /// MODULE
   /// {
   ///   foo = bar
   /// }
-  /// </code>
-  /// </remarks>
-  static readonly Regex NodeMultiLinePrefixDeclRe = new(@"^\s*(\W?)(\S+)\s*(.*?)\s*?$");
+  /// ]]></code>
+  /// </example>
+  static readonly Regex NodeMultiLinePrefixDeclRe = new(@"^\s*(\W?)(\S+)\s*(.*?)\s*$");
 
   /// <summary>Parses a beginning subnode declaration that starts on the same line.</summary>
   /// <remarks>
-  /// <para>
-  /// It detects the staring of the block and returns the key (subnode name) as <c>$1</c> and
-  /// everything after the opening bracket as <c>$2</c>:
-  /// </para>
-  /// <code>
-  /// // Multi-line.
-  /// MODULE {
-  ///   foo = bar
-  /// }
-  /// // Single line.
-  /// MODULE { foo = bar }
-  /// </code>
+  /// It detects the staring of the block and returns the key (subnode name) as <c>$2</c> and
+  /// everything after the opening bracket as <c>$3</c>.
   /// </remarks>
-  static readonly Regex NodeSameLineDeclRe = new(@"^\s*(\W?)(\S+)\s*{\s*(.*?)\s*$");
+  /// <example>
+  /// <code><![CDATA[
+  /// MODULE { foo = bar }
+  /// foo {} bar {}
+  /// ]]></code>
+  /// </example>
+  static readonly Regex NodeSameLineDeclRe = new(@"^\s*(\W?)(\S*)\s*{\s*(.*?)\s*$");
 
   /// <summary>Parses a simple key/value pair.</summary>
   /// <remarks>
-  /// <para>
-  /// The closing bracket symbols works as a stop symbol! The key is returned as <c>$1</c> and
-  /// the value is returned as <c>$2</c>:
-  /// </para>
-  /// <code>
-  /// // Multi-line: one value.
-  /// foo = bar
-  /// // Single line: two nodes.
-  /// foo = {} bar = {} FIXME
-  /// </code>
+  /// The any bracket symbol work as a stop symbol! The key is returned as <c>$2</c> and the value is returned as
+  /// <c>$3</c>.
   /// </remarks>
+  /// <example>
+  /// <code><![CDATA[
+  /// foo = bar
+  /// ]]></code>
+  /// </example>
   static readonly Regex KeyValueLineDeclRe = new(@"^\s*(\W?)(\S+)\s*(\W?)=\s*(.*?)\s*(//\s*(.*))?$");
 
   static readonly Regex MmKeyDeleteCommandDeclRe = new(@"^\s*([\-!]{1})(\S+)\s*(//.*)?$");
 
-  /// <summary>Parses a regular comment line.</summary>
+  /// <summary>Parses a comment that takes the whole line.</summary>
   static readonly Regex CommentDeclRe = new(@"^\s*//\s*(.*?)\s*?$");
   
   /// <summary>Creates a parser with the desired options.</summary>
@@ -171,7 +164,7 @@ public sealed class PartConfigParser {
         // Assignment statement may have an MM operator prefix.
         var fieldName = lineMatch.Groups[2].Value;
         var fieldValue = lineMatch.Groups[4].Value;
-        var commentValue = lineMatch.Groups[6].Value;//FIXME use extract comment?
+        var commentValue = lineMatch.Groups[6].Value;
 
         // Localize the value if it starts from "#". There can be false positives.
         if (_localizeValues && LocalizationManager.IsLocalizationTag(fieldValue)) {
@@ -196,7 +189,7 @@ public sealed class PartConfigParser {
         // The node declaration starts on the same line. There can be more data in the same line!
         // Everything, which is not a existingComment, is processed as a nex line.
         // The same line existingComment is get assigned to the node.
-        var moduleManagerCmd = lineMatch.Groups[1].Value;//FIXME
+        var moduleManagerCmd = lineMatch.Groups[1].Value;
         var nodeName = lineMatch.Groups[2].Value;
         var lineLeftOff = lineMatch.Groups[3].Value;
         meta.SetModuleManagerCommand(moduleManagerCmd);
@@ -247,7 +240,6 @@ public sealed class PartConfigParser {
           break;  // The open bracket line candidate found.
         }
         if (lineNum >= lines.Count) {
-          //FIXME: can be orphan field which must be treated as... how? 
           DebugEx.Warning(
               "Skipping a bad multiline node: file={0}, fieldName={1}, lines={2}-{3}. End of file reached",
               fileFullName, nodeName, startLine + 1, lineNum + 1);
