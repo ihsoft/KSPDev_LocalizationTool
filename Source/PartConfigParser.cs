@@ -166,6 +166,15 @@ public sealed class PartConfigParser {
         var fieldValue = lineMatch.Groups[4].Value;
         var commentValue = lineMatch.Groups[6].Value;
 
+        // Any bracket in the value is a stop symbol.
+        var lineLeftOff = "";
+        var brackets = "{}".ToCharArray();
+        var stopIndex = fieldValue.IndexOfAny(brackets);
+        if (stopIndex != -1) {
+          lineLeftOff = fieldValue.Substring(stopIndex);
+          fieldValue = fieldValue.Substring(0, stopIndex).TrimEnd();
+        }
+
         // Localize the value if it starts from "#". There can be false positives.
         if (_localizeValues && LocalizationManager.IsLocalizationTag(fieldValue)) {
           var locValue = Localizer.Format(fieldValue);
@@ -179,7 +188,12 @@ public sealed class PartConfigParser {
             .SetModuleManagerOperator(lineMatch.Groups[3].Value)
             .SetInlineComment(commentValue);
         node.AddValue(fieldName, fieldValue, meta.FlushToString());
-        lineNum++;
+
+        if (lineLeftOff != "") {
+          lines[lineNum] = lineLeftOff;
+        } else {
+          lineNum++;
+        }
         continue;
       }
 
