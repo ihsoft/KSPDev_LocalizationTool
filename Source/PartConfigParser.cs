@@ -41,7 +41,7 @@ public sealed class PartConfigParser {
   /// }
   /// ]]></code>
   /// </example>
-  static readonly Regex NodeMultiLinePrefixDeclRe = new(@"^\s*(\W?)(\S+)\s*(.*?)\s*$");
+  static readonly Regex NodeMultiLinePrefixDeclRe = new(@"^\s*(\W?)([a-zA-Z0-9]+)(\S*)\s*(.*?)\s*$");
 
   /// <summary>Parses a beginning subnode declaration that starts on the same line.</summary>
   /// <remarks>
@@ -54,7 +54,7 @@ public sealed class PartConfigParser {
   /// foo {} bar {}
   /// ]]></code>
   /// </example>
-  static readonly Regex NodeSameLineDeclRe = new(@"^\s*(\W?)(\S*)\s*{\s*(.*?)\s*$");
+  static readonly Regex NodeSameLineDeclRe = new(@"^\s*(\W?)([a-zA-Z0-9]*)(\S*)\s*{\s*(.*?)\s*$");
 
   /// <summary>Parses a simple key/value pair.</summary>
   /// <remarks>
@@ -204,9 +204,11 @@ public sealed class PartConfigParser {
         // Everything, which is not a existingComment, is processed as a nex line.
         // The same line existingComment is get assigned to the node.
         var moduleManagerCmd = lineMatch.Groups[1].Value;
+        var moduleManagerArgs = lineMatch.Groups[3].Value;
         var nodeName = lineMatch.Groups[2].Value;
-        var lineLeftOff = lineMatch.Groups[3].Value;
+        var lineLeftOff = lineMatch.Groups[4].Value;
         meta.SetModuleManagerCommand(moduleManagerCmd);
+        meta.SetModuleManagerArguments(moduleManagerArgs);
         var newNode = new ConfigNode(nodeName, meta.FlushToString());
         node.nodes.Add(newNode);
         node = newNode;
@@ -222,9 +224,10 @@ public sealed class PartConfigParser {
       // CASE #6: Node, that starts on the next line(s).
       lineMatch = NodeMultiLinePrefixDeclRe.Match(line);
       if (lineMatch.Success) {
-        var moduleManagerCmd= lineMatch.Groups[1].Value;//FIXME
+        var moduleManagerCmd= lineMatch.Groups[1].Value;
+        var moduleManagerArgs = lineMatch.Groups[3].Value;
         var nodeName = lineMatch.Groups[2].Value;
-        var lineLeftOff = lineMatch.Groups[3].Value;
+        var lineLeftOff = lineMatch.Groups[4].Value;
         if (lineLeftOff != "") {
           var commentValue = ExtractComment(lineLeftOff);
           if (commentValue == null) {
@@ -234,6 +237,7 @@ public sealed class PartConfigParser {
           meta.SetInlineComment(commentValue);
         }
         meta.SetModuleManagerCommand(moduleManagerCmd);
+        meta.SetModuleManagerArguments(moduleManagerArgs);
         var startLine = lineNum ;
         lineNum++;
 
