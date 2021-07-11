@@ -191,7 +191,7 @@ static class ConfigStore {
         res.AppendLine("// " + trailingLine.value);
       }
     }
-    var nodeOpenText = indentSpaces + node.name;
+    var nodeOpenText = indentSpaces + (nodeMeta.mmCommand ?? "") + node.name + (nodeMeta.mmArguments ?? "");
     if (nodeMeta.inlineComment != null) {
       nodeOpenText += " // " + nodeMeta.inlineComment;  
     }
