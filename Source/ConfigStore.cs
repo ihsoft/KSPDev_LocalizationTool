@@ -188,7 +188,7 @@ static class ConfigStore {
       if (trailingLine.isEmptyLine) {
         res.AppendLine();
       } else {
-        res.AppendLine("// " + trailingLine.value);
+        res.AppendLine(indentSpaces + "// " + trailingLine.value);
       }
     }
     var nodeOpenText = indentSpaces + (nodeMeta.mmCommand ?? "") + node.name + (nodeMeta.mmArguments ?? "");
