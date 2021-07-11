@@ -191,16 +191,19 @@ static class ConfigStore {
         res.AppendLine(indentSpaces + "// " + trailingLine.value);
       }
     }
-    var nodeOpenText = indentSpaces + (nodeMeta.mmCommand ?? "") + node.name + (nodeMeta.mmArguments ?? "");
-    if (nodeMeta.inlineComment != null) {
-      nodeOpenText += " // " + nodeMeta.inlineComment;  
+    var nodeText = (nodeMeta.mmCommand ?? "") + node.name + (nodeMeta.mmArguments ?? "");
+    var openBlockComment = nodeMeta.openBlockComment != null ? " // " + nodeMeta.openBlockComment : "";
+    var closeBlockComment = nodeMeta.closeBlockComment != null ? " // " + nodeMeta.closeBlockComment : "";
+    var inlineComment = nodeMeta.inlineComment != null ? " // " + nodeMeta.inlineComment : "";
+
+    // Check for an empty block. Write it in a short form.
+    if (node.values.Count == 0 && node.nodes.Count == 0 && openBlockComment == "" && inlineComment == "") {
+      res.AppendLine(indentSpaces + nodeText + " {}" + closeBlockComment);
+      return;
     }
-    res.AppendLine(nodeOpenText);
-    var openBlockText = indentSpaces + "{";
-    if (nodeMeta.openBlockComment != null) {
-      openBlockText += " // " + nodeMeta.openBlockComment;
-    }
-    res.AppendLine(openBlockText);
+
+    res.AppendLine(indentSpaces + nodeText + inlineComment);
+    res.AppendLine(indentSpaces + "{" + openBlockComment);
     indentation++;
     var indentBlock = indentSpaces + '\t'; 
 
@@ -224,11 +227,7 @@ static class ConfigStore {
         SerializeNode(res, childNode, indentation);
       }
     }
-    var nodeCloseText = indentSpaces + "}";
-    if (nodeMeta.closeBlockComment != null) {
-      nodeCloseText += " // " + nodeMeta.closeBlockComment;  
-    }
-    res.AppendLine(nodeCloseText);
+    res.AppendLine(indentSpaces + "}" + closeBlockComment);
   }
 
   /// <summary>Formats a comment with the proper indentation.</summary>
