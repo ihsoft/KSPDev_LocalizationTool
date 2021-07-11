@@ -184,6 +184,13 @@ static class ConfigStore {
   static void SerializeNode(StringBuilder res, ConfigNode node, int indentation) {
     var indentSpaces = new string('\t', indentation);
     var nodeMeta = MetaBlock.MakeFromString(node.comment);
+    foreach (var trailingLine in nodeMeta.trailingLines) {
+      if (trailingLine.isEmptyLine) {
+        res.AppendLine();
+      } else {
+        res.AppendLine("// " + trailingLine.value);
+      }
+    }
     var nodeOpenText = indentSpaces + node.name;
     if (nodeMeta.inlineComment != null) {
       nodeOpenText += " // " + nodeMeta.inlineComment;  
@@ -213,7 +220,6 @@ static class ConfigStore {
       res.AppendLine(MakeConfigNodeLine(indentation, field.name, field.value, meta: meta));
     }
     if (node.CountNodes > 0) {
-      res.AppendLine("");
       foreach (var childNode in node.GetNodes()) {
         SerializeNode(res, childNode, indentation);
       }
