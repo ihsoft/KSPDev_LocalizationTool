@@ -55,7 +55,7 @@ public class MetaBlock {
   public string closeBlockComment { get; private set; }
 
   /// <summary>The Module Manager command.</summary>
-  /// <remarks>It's a prefix symbol to the field name aor a block starter (e.g. <c>PART</c>).</remarks>
+  /// <remarks>It's a prefix symbol to the field name or a block starter (e.g. <c>PART</c>).</remarks>
   /// <value>The MM command symbol like <c>@</c> or <c>%</c> or <c>null</c> if nothing set.</value>
   public string mmCommand { get; private set; }
 
@@ -228,6 +228,7 @@ public class MetaBlock {
     isFakeField = false;
     mmCommand = null;
     mmOperator = null;
+    mmArguments = null;
   }
 
   /// <summary>Restores the block state form a serialized string.</summary>
