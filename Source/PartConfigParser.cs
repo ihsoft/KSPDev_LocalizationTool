@@ -207,7 +207,9 @@ public sealed class PartConfigParser {
         var nodeName = lineMatch.Groups[2].Value;
         var lineLeftOff = lineMatch.Groups[3].Value;
         meta.SetModuleManagerCommand(moduleManagerCmd);
-        node = node.AddNode(nodeName, meta.FlushToString());
+        var newNode = new ConfigNode(nodeName, meta.FlushToString());
+        node.nodes.Add(newNode);
+        node = newNode;
         nodesStack.Add(node);
         if (lineLeftOff.Length > 0) {
           lines[lineNum] = lineLeftOff;
