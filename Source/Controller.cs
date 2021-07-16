@@ -19,8 +19,8 @@ using UnityEngine;
 namespace KSPDev.LocalizationTool {
 
 [PersistentFieldsFileAttribute("KSPDev/LocalizationTool/PluginData/settings.cfg", "")]
-[PersistentFieldsFileAttribute("KSPDev/LocalizationTool/PluginData/session.cfg", "UI",
-                               StdPersistentGroups.SessionGroup)]
+[PersistentFieldsFileAttribute(
+    "KSPDev/LocalizationTool/PluginData/session.cfg", "UI", StdPersistentGroups.SessionGroup)]
 sealed class Controller : MonoBehaviour, IHasGUI {
   #region Localizable UI strings
   static readonly Message<Version> MainWindowTitleTxt = new Message<Version>(
@@ -135,7 +135,7 @@ sealed class Controller : MonoBehaviour, IHasGUI {
 
   /// <summary>Item that represents mod parts record.</summary>
   class PartsRecord : ScannedRecord {
-    public List<AvailablePart> parts = new List<AvailablePart>();
+    public List<AvailablePart> parts = new();
     public string urlPrefix = "";
 
     /// <inheritdoc/>
@@ -173,32 +173,38 @@ sealed class Controller : MonoBehaviour, IHasGUI {
   #endregion
 
   #region Mod's settings
+  // ReSharper disable FieldCanBeMadeReadOnly.Global
+  // ReSharper disable FieldCanBeMadeReadOnly.Local
+  // ReSharper disable ConvertToConstant.Global
+  // ReSharper disable ConvertToConstant.Local
+  // ReSharper disable InconsistentNaming
+  // ReSharper disable CollectionNeverUpdated.Global
+
   [PersistentField("UI/toggleConsoleKey")]
   string _toggleConsoleKey = "&f8";
 
   [PersistentField("UI/scrollHeight")]
-  // ReSharper disable once FieldCanBeMadeReadOnly.Local
-  // ReSharper disable once ConvertToConstant.Local
   static int _scrollHeight = 150;
 
   /// <summary>Order, in which the part sections should be sorted.</summary>
   [PersistentField("Export/partFieldsSorting")]
-  // ReSharper disable once FieldCanBeMadeReadOnly.Global
-  // ReSharper disable once ConvertToConstant.Global
   internal static string partFieldsSorting = "title,manufacturer,description,tags";
 
   /// <summary>Tag prefixes that should be completely ignored by the tool.</summary>
   [PersistentField("Export/skipTags", isCollection = true)]
-  // ReSharper disable once CollectionNeverUpdated.Global
-  // ReSharper disable once FieldCanBeMadeReadOnly.Global
-  internal static HashSet<string> skipTags = new HashSet<string>();
+  internal static HashSet<string> skipTags = new();
 
   /// <summary>Tag prefixes that are allowed for multiple usage.</summary>
   /// <remarks>They will be added as a separate group at the end of the lang file.</remarks>
   [PersistentField("Export/globalTags", isCollection = true)]
-  // ReSharper disable once CollectionNeverUpdated.Global
-  // ReSharper disable once FieldCanBeMadeReadOnly.Global
-  internal static HashSet<string> globalPrefix = new HashSet<string>();
+  internal static HashSet<string> globalPrefix = new();
+
+  // ReSharper restore FieldCanBeMadeReadOnly.Global
+  // ReSharper restore FieldCanBeMadeReadOnly.Local
+  // ReSharper restore ConvertToConstant.Global
+  // ReSharper restore ConvertToConstant.Local
+  // ReSharper restore InconsistentNaming
+  // ReSharper restore CollectionNeverUpdated.Global
   #endregion
 
   #region Session settings
@@ -571,8 +577,8 @@ sealed class Controller : MonoBehaviour, IHasGUI {
   }
 
   /// <summary>
-  /// Patches the part configs so that they refer the tags for the localizable fields, and saves the
-  /// modified fields in the export location.
+  /// Patches the part configs so that they refer the tags in the localizable fields, and saves the
+  /// modified configs into the export location.
   /// </summary>
   /// <remarks></remarks>
   /// <param name="parts">The parts to patch.</param>
