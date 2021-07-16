@@ -442,8 +442,7 @@ sealed class Controller : MonoBehaviour, IHasGUI {
     if (assemblyRecords.Length == 1) {
       fileName = assemblyRecords.First().assembly.GetName().Name + "_" + fileName;
     }
-    var filePath = KspPaths.GetModsDataFilePath(this, "Lang/" + fileName);
-    Directory.CreateDirectory(Path.GetDirectoryName(filePath));
+    var filePath = KspPaths.GetModsDataFilePath(this, fileName, subFolder: "Lang", createMissingDirs: true);
     ConfigStore.WriteLocItems(locItems, Localizer.CurrentLanguage, filePath);
     DebugEx.Warning("Strings are written into: {0}", filePath);
     ShowCompletionDialog(StringsExportedDlgTitle, FileSavedTxt.Format(filePath.Replace("\\", "/")));
@@ -584,7 +583,7 @@ sealed class Controller : MonoBehaviour, IHasGUI {
   /// <param name="parts">The parts to patch.</param>
   void GuiExportPartConfigs(IEnumerable<PartsRecord> parts) {
     var exportParts = parts.SelectMany(x => x.parts).ToArray();
-    var exportPath = KspPaths.GetModsDataFilePath(this, "Parts/");
+    var exportPath = KspPaths.GetModsDataFilePath(this, "", subFolder: "Parts", createMissingDirs: true);
     foreach (var part in exportParts) {
       var config = ConfigStore.LoadConfigWithComments(part.configFileFullName, localizeValues: false);
       if (config == null) {
@@ -621,7 +620,7 @@ sealed class Controller : MonoBehaviour, IHasGUI {
       // Expand the localized placeholders to the default syntax format.
       ExpandLocalizedValues(config);
 
-      var tgtPath = exportPath + part.name.Replace(".", "_") + ".cfg";
+      var tgtPath = Path.Combine(exportPath, part.name.Replace(".", "_") + ".cfg");
       DebugEx.Warning("Saving patched part config into: {0}", tgtPath);
       ConfigStore.SaveConfigWithComments(config, tgtPath);
     }
