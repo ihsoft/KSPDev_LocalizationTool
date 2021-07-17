@@ -23,11 +23,11 @@ namespace KSPDev.LocalizationTool {
     "KSPDev/LocalizationTool/PluginData/session.cfg", "UI", StdPersistentGroups.SessionGroup)]
 sealed class Controller : MonoBehaviour, IHasGUI {
   #region Localizable UI strings
-  static readonly Message<Version> MainWindowTitleTxt = new Message<Version>(
+  static readonly Message<Version> MainWindowTitleTxt = new(
       "#locTool_00000",
       "KSPDev LocalizationTool v<<1>>");
 
-  static readonly Message MakeSelectionsForExportTxt = new Message(
+  static readonly Message MakeSelectionsForExportTxt = new(
       "#locTool_00001",
       "<i>EXPORT STRINGS: Select an assembly or a parts folder</i>");
 
@@ -35,83 +35,83 @@ sealed class Controller : MonoBehaviour, IHasGUI {
       "#locTool_00002",
       "Export strings from <<1>> parts and <<2>> assemblies into exported.cfg");
 
-  static readonly Message MakeSelectionsForReloadTxt = new Message(
+  static readonly Message MakeSelectionsForReloadTxt = new(
       "#locTool_00003",
       "<i>RELOAD STRINGS: Select a localization file</i>");
 
-  static readonly Message<int, int> RefreshBtnTxt = new Message<int, int>(
+  static readonly Message<int, int> RefreshBtnTxt = new(
       "#locTool_00004",
       "Reload <<1>> localization configs and update <<2>> parts");
 
-  static readonly Message UpdateAllPartsTxt = new Message(
+  static readonly Message UpdateAllPartsTxt = new(
       "#locTool_00005",
       "Update all the parts in the game DB");
 
-  static readonly Message TypePrefixToStartTxt = new Message(
+  static readonly Message TypePrefixToStartTxt = new(
       "#locTool_00006",
       "<i>...type 3 or more prefix characters...</i>");
 
-  static readonly Message NothingFoundForPrefixTxt = new Message(
+  static readonly Message NothingFoundForPrefixTxt = new(
       "#locTool_00007",
       "<i>...nothing found for the prefix...</i>");
 
-  static readonly Message UrlPrefixFieldCaptionTxt = new Message(
+  static readonly Message UrlPrefixFieldCaptionTxt = new(
       "#locTool_00008",
       "URL prefix:");
 
-  static readonly Message AssembliesWithoutModulesToggleTxt = new Message(
+  static readonly Message AssembliesWithoutModulesToggleTxt = new(
       "#locTool_00009",
       "Show assemblies with no modules");
 
-  static readonly Message MakeSelectionsForPatchTxt = new Message(
+  static readonly Message MakeSelectionsForPatchTxt = new(
       "#locTool_00010",
       "<i>EXPORT PART CONFIGS: Select a parts folder</i>");
 
-  static readonly Message<int> PatchPartsBtnTxt = new Message<int>(
+  static readonly Message<int> PatchPartsBtnTxt = new(
       "#locTool_00011",
       "Export <<1>> patched part configs");
 
-  static readonly Message CloseDialogBtnTxt = new Message(
+  static readonly Message CloseDialogBtnTxt = new(
       "#locTool_00012",
       "Close");
 
-  static readonly Message StringsExportedDlgTitle = new Message(
+  static readonly Message StringsExportedDlgTitle = new(
       "#locTool_00013",
       "Strings exported");
 
-  static readonly Message<string> FileSavedTxt = new Message<string>(
+  static readonly Message<string> FileSavedTxt = new(
       "#locTool_00014",
       "File saved:\n<<1>>");
 
-  static readonly Message ConfigSavedDlgTitle = new Message(
+  static readonly Message ConfigSavedDlgTitle = new(
       "#locTool_00015",
       "Part configs saved");
 
-  static readonly Message<int, string> ConfigsSavedInFolderTxt = new Message<int, string>(
+  static readonly Message<int, string> ConfigsSavedInFolderTxt = new(
       "#locTool_00016",
       "<<1>> part configs saved into folder:\n<<2>>");
 
-  static readonly Message WaitDialogTitle = new Message(
+  static readonly Message WaitDialogTitle = new(
       "#locTool_00017",
       "Action in progress");
 
-  static readonly Message WaitDialogText = new Message(
+  static readonly Message WaitDialogText = new(
       "#locTool_00018",
       "It may take a while. Please, be patient...");
 
-  static readonly Message CurrentLanguageFieldCaptionTxt = new Message(
+  static readonly Message CurrentLanguageFieldCaptionTxt = new(
       "#locTool_00019",
       "Current language:");
 
-  static readonly Message<string, int> PartsRecordTxt = new Message<string, int>(
+  static readonly Message<string, int> PartsRecordTxt = new(
       "#locTool_00020",
       "<<1>> (<<2>> parts)");
   
-  static readonly Message<string, string, int> AssemblyRecordTxt = new Message<string, string, int>(
+  static readonly Message<string, string, int> AssemblyRecordTxt = new(
       "#locTool_00021",
       "<<1>>, v<<2>> (<<3>> modules)");
 
-  static readonly Message<string, string, int> ConfigRecordTxt = new Message<string, string, int>(
+  static readonly Message<string, string, int> ConfigRecordTxt = new(
       "#locTool_00022",
       "<<1>>, lang=<<2>> (<<3>> strings)");
   #endregion
