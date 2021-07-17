@@ -349,18 +349,17 @@ sealed class Controller : MonoBehaviour, IHasGUI {
     }
 
     // Action buttons.
+    var selectedAssemblies = _targets.OfType<AssemblyRecord>().Where(x => x.selected).ToArray();
+    var selectedParts = _targets.OfType<PartsRecord>().Where(x => x.selected).ToArray();
+    var selectedConfigs = _targets.OfType<ConfigRecord>().Where(x => x.selected).ToArray();
+
     var selectedModulesCount = _targets.OfType<AssemblyRecord>()
         .Where(x => x.selected)
         .Sum(x => x.types.Count);
     var selectedPartsCount = _targets.OfType<PartsRecord>()
         .Where(x => x.selected)
         .Sum(x => x.parts.Count);
-    var selectedLacsCount = _targets.OfType<ConfigRecord>()
-        .Count(x => x.selected);
-
-    var selectedAssemblies = _targets.OfType<AssemblyRecord>().Where(x => x.selected).ToArray();
-    var selectedParts = _targets.OfType<PartsRecord>().Where(x => x.selected).ToArray();
-    var selectedConfigs = _targets.OfType<ConfigRecord>().Where(x => x.selected).ToArray();
+    var selectedConfigsCount = selectedConfigs.Length;
 
     // Strings export controls.
     var stringExportControl = selectedPartsCount > 0
@@ -387,7 +386,7 @@ sealed class Controller : MonoBehaviour, IHasGUI {
     }
 
     // Strings reload controls.
-    var reloadsControl = selectedLacsCount > 0;
+    var reloadsControl = selectedConfigsCount > 0;
     using (new GuiEnabledStateScope(reloadsControl)) {
       var title = reloadsControl
           ? RefreshBtnTxt.Format(selectedConfigs.Length, selectedParts.Sum(x => x.parts.Count))
