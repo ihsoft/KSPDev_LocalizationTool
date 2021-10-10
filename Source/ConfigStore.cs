@@ -143,8 +143,7 @@ static class ConfigStore {
   /// <summary>Loads a config file preserving the value comments.</summary>
   /// <param name="fileFullName">The file to load.</param>
   /// <param name="localizeValues">
-  /// Tells if the field values should be localized. If not, then they are returned from the file
-  /// "as-is".
+  /// Tells if the field values should be localized. If not, then they are returned from the file "as-is".
   /// </param>
   /// <returns>A loaded config node.</returns>
   /// <seealso cref="PartConfigParser"/>
@@ -156,9 +155,7 @@ static class ConfigStore {
   /// <summary>Saves the node into a config file preserving the comments.</summary>
   /// <remarks>It's a counter part to the <see cref="LoadConfigWithComments"/> method.</remarks>
   /// <param name="node">The node with the comments to save.</param>
-  /// <param name="path">
-  /// The path to save at. The missing directions in the path will be created if missed.
-  /// </param>
+  /// <param name="path">The path to save at. The missing directions in the path will be created if missed.</param>
   public static void SaveConfigWithComments(ConfigNode node, string path) {
     var content = new StringBuilder();
     foreach (var childNode in node.GetNodes()) {
