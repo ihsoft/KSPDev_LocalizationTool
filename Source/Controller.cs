@@ -181,7 +181,7 @@ sealed class Controller : MonoBehaviour, IHasGUI {
   // ReSharper disable CollectionNeverUpdated.Global
 
   [PersistentField("UI/toggleConsoleKey")]
-  string _toggleConsoleKey = "&f8";
+  static string _toggleConsoleKey = "&f8";
 
   [PersistentField("UI/scrollHeight")]
   static int _scrollHeight = 150;
