@@ -279,6 +279,9 @@ sealed class Controller : MonoBehaviour, IHasGUI {
 
     _toggleConsoleKeyEvent = Event.KeyboardEvent(_toggleConsoleKey);
     _windowRect = new Rect(_windowPos, _windowSize);
+    if (_windowPos.x > Screen.width || _windowPos.y > Screen.height) {
+      _windowRect = new Rect(new Vector2(10, 10), _windowSize);
+    }
 
     var langField = typeof(Controller).GetField(
         nameof(_selectedLanguage), BindingFlags.NonPublic | BindingFlags.Instance);
