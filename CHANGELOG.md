@@ -3,6 +3,7 @@
 * [Fix] Use `en-us` locale when generating the default part fields localization comments.
 * [Fix #16] Bad escaping in the localization makes the tool crashing.
 * [Fix #17] Support the stock fields/events/actions GUI strings reloading.
+* [Enhancement] Make own CFG parser to properly capture comments, formatting and `ModuleManager` patches.
 * [Enhancement] Support the game's UI scale.
 
 # 1.9 (April 26h, 2020):
